@@ -1,3 +1,6 @@
+import flixel.util.FlxColor;
+import flixel.addons.transition.TransitionData;
+import flixel.addons.transition.FlxTransitionableState;
 import backend.Controls;
 import openfl.events.KeyboardEvent;
 import backend.util.SaveUtil;
@@ -65,6 +68,9 @@ class InitState extends FlxState {
 
 		// Set the default font
 		FlxAssets.FONT_DEFAULT = PathUtil.ofFont('Born2bSportyFS');
+
+		// Set the outro shit for states
+		FlxTransitionableState.defaultTransOut = new TransitionData(TransitionType.FADE, FlxColor.BLACK);
 
 		// Disable the right-click context menu for HTML5
 		#if html5

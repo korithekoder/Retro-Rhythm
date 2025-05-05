@@ -87,5 +87,11 @@ final class Constants {
      */
     public static final MENU_MUSIC_NAME:String = 'Bit Destroyer';
 
+    public static final CAMERA_ZOOM_DECAY:Float = 1;
+
+    public static final DEFAULT_CAM_ZOOM:Float = 1.05;
+
+    public static final CAM_ZOOM_MULTIPLIER:Float = 3;
+
     private function new() {}
 }

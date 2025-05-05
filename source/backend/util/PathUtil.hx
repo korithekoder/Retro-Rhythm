@@ -60,6 +60,16 @@ final class PathUtil {
     }
 
     /**
+     * Get the path of a song's chart data.
+     * 
+     * @param name The name of the chart (this does not include the file extension).
+     * @return     The path of the chart.
+     */
+    public static inline function ofChart(name:String):String {
+        return 'assets/charts/$name.json';
+    }
+
+    /**
      * Get the paths of a sprite sheets' image and `.xml` file.
      * Note that this will return an array of both pathways, with the
      * first element being to the image and the second one being its
@@ -74,16 +84,6 @@ final class PathUtil {
     public static inline function ofSpriteSheet(name:String):Array<String> {
         return ['assets/shared/images/spritesheets/$name.png', 'assets/shared/images/spritesheets/$name.xml'];
     }
-
-	/**
-	 * Get the specific type of tile.
-	 * 
-	 * @param type The type of tile (e.g. `grass`, `dirt`, etc.).
-	 * @return     The path of the tile.
-	 */
-	public static inline function ofTileTexture(type:String):String {
-		return 'assets/tiles/textures/$type.png';
-	}
 
     /**
      * Get the full pathway to the game's save folder and any extra files and data that may be needed.
