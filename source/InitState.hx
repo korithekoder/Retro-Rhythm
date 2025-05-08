@@ -70,7 +70,7 @@ class InitState extends FlxState {
 		FlxAssets.FONT_DEFAULT = PathUtil.ofFont('Born2bSportyFS');
 
 		// Set the outro shit for states
-		FlxTransitionableState.defaultTransOut = new TransitionData(TransitionType.FADE, FlxColor.BLACK);
+		FlxTransitionableState.defaultTransIn = new TransitionData(TransitionType.FADE, FlxColor.BLACK);
 
 		// Disable the right-click context menu for HTML5
 		#if html5
@@ -89,7 +89,7 @@ class InitState extends FlxState {
 		#if desktop
         // Fullscreen :sparkles:
         FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, (_) -> {
-            if (Controls.binds.FULLSCREEN_JUST_PRESSED) {
+            if (Controls.getBinds().FULLSCREEN_JUST_PRESSED) {
 				FlxG.fullscreen = !FlxG.fullscreen;
 				ClientPrefs.setClientPreference('fullscreen', FlxG.fullscreen);
 			}

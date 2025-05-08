@@ -40,6 +40,26 @@ import flixel.FlxG;
  */
 final class Controls {
 
+    // Strumline (pressed)
+    public var S_LEFT_PRESSED(get, never):Bool;
+    public var S_DOWN_PRESSED(get, never):Bool;
+    public var S_UP_PRESSED(get, never):Bool;
+    public var S_RIGHT_PRESSED(get, never):Bool;
+    private inline function get_S_LEFT_PRESSED():Bool return pressed('s_left');
+    private inline function get_S_DOWN_PRESSED():Bool return pressed('s_down');
+    private inline function get_S_UP_PRESSED():Bool return pressed('s_up');
+    private inline function get_S_RIGHT_PRESSED():Bool return pressed('s_right');
+
+    // Strumline (just pressed)
+    public var S_LEFT_JUST_PRESSED(get, never):Bool;
+    public var S_DOWN_JUST_PRESSED(get, never):Bool;
+    public var S_UP_JUST_PRESSED(get, never):Bool;
+    public var S_RIGHT_JUST_PRESSED(get, never):Bool;
+    private inline function get_S_LEFT_JUST_PRESSED():Bool return justPressed('s_left');
+    private inline function get_S_DOWN_JUST_PRESSED():Bool return justPressed('s_down');
+    private inline function get_S_UP_JUST_PRESSED():Bool return justPressed('s_up');
+    private inline function get_S_RIGHT_JUST_PRESSED():Bool return justPressed('s_right');
+
 	// UI (just pressed)
 	public var UI_LEFT_JUST_PRESSED(get, never):Bool;
 	public var UI_DOWN_JUST_PRESSED(get, never):Bool;
@@ -71,7 +91,11 @@ final class Controls {
     /**
      * Object used to get the pressed, just pressed and just released controls.
      */
-    public static var binds:Controls;
+    private static var binds:Controls;
+
+    public static inline function getBinds():Controls {
+        return binds;
+    }
     
     /**
      * Check if the user is holding down a certain control.

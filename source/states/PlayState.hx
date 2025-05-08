@@ -1,37 +1,178 @@
 package states;
 
-import flixel.addons.transition.FlxTransitionableState;
-import flixel.util.FlxColor;
-import flixel.text.FlxText;
-import backend.data.Constants;
-import flixel.FlxG;
-import flixel.math.FlxMath;
 import flixel.FlxState;
+import backend.data.ClientPrefs;
+import backend.data.Constants;
+import backend.util.AssetUtil;
+import backend.util.CacheUtil;
+import backend.util.GeneralUtil;
+import backend.util.PathUtil;
+import flixel.FlxCamera;
+import flixel.FlxG;
+import flixel.FlxSprite;
+import flixel.addons.transition.FlxTransitionableState;
+import flixel.group.FlxGroup.FlxTypedGroup;
+import flixel.math.FlxMath;
+import flixel.sound.FlxSound;
+import flixel.text.FlxText;
+import flixel.util.FlxColor;
+import flixel.util.FlxTimer;
+import objects.gameplay.Note;
+import objects.gameplay.NoteLane;
 
-class PlayState extends FlxTransitionableState {
+class PlayState extends FlxState {
 
-	var test:FlxText;
+	public static var bgCamera:FlxCamera;
+	public static var gameplayCamera:FlxCamera;
+	public static var uiCamera:FlxCamera;
+
+	var songId:String;
+	var songData:Dynamic;
+	var songNotes:Array<Dynamic>;
+	var songMetadata:Dynamic;
+
+	var songComposer:String;
+	var songCharter:String;
+	var songName:String;
+
+	var songSpeed:Float;
+	var songBPM:Int;
+	var songCamZoomIntensity:Float;
+	var songLength:Float;
+
+	var beatDuration:Float;
+	var beatCounter:Int = 0;
+	var timeSinceLastBeat:Float = 0;
+
+	var noteSpeed:Float;
+	var noteLanesGroup:FlxTypedGroup<NoteLane>;
+	var notesGroup:FlxTypedGroup<Note>;
+
+	var strumline:FlxSprite;
+
+	var totalTimePassed:Float = 0;
+
+	var bgSprite:FlxSprite;
+
+	var songDoneTimer:FlxTimer;
+
+	public function new(songId:String) {
+		super();
+
+		this.songId = songId;
+		this.songData = AssetUtil.getJsonData(PathUtil.ofChart(songId), {});
+
+		this.songNotes = AssetUtil.getDynamicField(this.songData, 'notes', []);
+
+		this.songMetadata = AssetUtil.getDynamicField(this.songData, 'metadata', Constants.DEFAULT_METADATA);
+		this.songComposer = AssetUtil.getDynamicField(this.songMetadata, 'composer', 'Unknown');
+		this.songCharter = AssetUtil.getDynamicField(this.songMetadata, 'charter', 'Unknown');
+		this.songName = AssetUtil.getDynamicField(this.songMetadata, 'name', 'Unknown');
+
+		this.songSpeed = AssetUtil.getDynamicField(this.songData, 'speed', 1);
+		this.songBPM = AssetUtil.getDynamicField(this.songData, 'songBPM', 60);
+		this.songCamZoomIntensity = AssetUtil.getDynamicField(this.songData, 'camzoom', 2);
+
+		this.beatDuration = 60 / this.songBPM;
+
+		this.noteSpeed = (FlxG.height / this.beatDuration) * this.songSpeed;
+	}
 	
 	override public function create() {
 		super.create();
-		test = new FlxText();
-		test.text = 'OMMGGGGGGGGGGGG CAMERA ZOOMJING!!!1!!\n(Press space lmao)';
-		test.alignment = FlxTextAlign.CENTER;
-		test.color = FlxColor.WHITE;
-		test.size = 128;
-		test.updateHitbox();
-		test.x = (FlxG.width / 2) - (test.width / 2);
-		test.y = (FlxG.height / 2) - (test.height / 2);
-		add(test);
+		CacheUtil.canPlayMenuMusic = true;
+
+		bgCamera = new FlxCamera();
+		gameplayCamera = new FlxCamera();
+		gameplayCamera.bgColor.alpha = 0;
+		uiCamera = new FlxCamera();
+		uiCamera.bgColor.alpha = 0;
+
+		FlxG.cameras.add(bgCamera);
+		FlxG.cameras.add(gameplayCamera);
+		FlxG.cameras.add(uiCamera);
+
+		bgSprite = new FlxSprite();
+		bgSprite.loadGraphic(PathUtil.ofBackground(songId));
+		bgSprite.setGraphicSize(FlxG.width, FlxG.height);
+		bgSprite.updateHitbox();
+		bgSprite.setPosition(0, 0);
+		bgSprite.cameras = [bgCamera];
+		add(bgSprite);
+
+		noteLanesGroup = new FlxTypedGroup<NoteLane>();
+		noteLanesGroup.cameras = [gameplayCamera];
+		add(noteLanesGroup);
+
+		var newX:Float = 350;
+		for (i in 0...4) {
+			var newLane:NoteLane = new NoteLane(newX, FlxColor.BLUE, i);
+			newLane.cameras = [gameplayCamera];
+			noteLanesGroup.add(newLane);
+			newX += Constants.NOTE_LANE_WIDTH + Constants.NOTE_LANE_SPACING;
+		}
+
+		notesGroup = new FlxTypedGroup<Note>();
+		notesGroup.cameras = [gameplayCamera];
+		add(notesGroup);
+
+		strumline = new FlxSprite();
+		strumline.makeGraphic((Constants.NOTE_LANE_WIDTH * 4) + (Std.int(Constants.NOTE_LANE_SPACING) * 5), 10, FlxColor.GRAY);
+		strumline.updateHitbox();
+		strumline.alpha = 0.6;
+		strumline.x = noteLanesGroup.members[0].x - (Constants.NOTE_LANE_SPACING);
+		strumline.y = (ClientPrefs.options.scrollType == DOWNSCROLL) ? FlxG.height - Constants.STRUMLINE_Y_OFFSET : Constants.STRUMLINE_Y_OFFSET;
+		strumline.cameras = [gameplayCamera];
+		add(strumline);
+
+		var songFile:FlxSound = new FlxSound();
+		songFile.loadEmbedded(PathUtil.ofSong(songName));
+		FlxG.sound.playMusic(PathUtil.ofSong(songName), false);
+
+		songDoneTimer = new FlxTimer();
 	}
 
 	override public function update(elapsed:Float) {
 		super.update(elapsed);
 
-		FlxG.camera.zoom = FlxMath.lerp(Constants.DEFAULT_CAM_ZOOM, FlxG.camera.zoom, Math.exp(-elapsed * 3.125 * Constants.CAMERA_ZOOM_DECAY));
+		timeSinceLastBeat += elapsed;
 
-		if (FlxG.keys.justPressed.SPACE) {
-			FlxG.camera.zoom += 0.015 * 5;
+		var musicTime:Float = (FlxG.sound.music.time / 1000);
+
+		if (timeSinceLastBeat >= beatDuration) {
+			timeSinceLastBeat -= beatDuration;
+			beatCounter++;
+
+			if (beatCounter % 1 == 0) {
+				beatHit();
+			}
 		}
+
+		if (songNotes.length > 0) {
+			var note:Dynamic = songNotes[0];
+			var noteTime:Float = AssetUtil.getDynamicField(note, 'time', 0);
+			var noteLane:Int = AssetUtil.getDynamicField(note, 'lane', 0);
+
+			if ((noteTime) <= musicTime + songSpeed) {  // FIX THIS!!!!
+				var noteLaneX:Float = noteLanesGroup.members[noteLane].x;
+				var newNote:Note = new Note(noteLaneX, noteLane, ClientPrefs.options.scrollType, noteSpeed);
+				newNote.cameras = [gameplayCamera];
+				notesGroup.add(newNote);
+				songNotes.shift();
+			}
+		}
+
+		for (note in notesGroup.members) {
+			if (note == null || !note.alive) {
+				notesGroup.remove(note, true);
+			}
+		}
+
+		bgCamera.zoom = FlxMath.lerp(Constants.DEFAULT_CAM_ZOOM, bgCamera.zoom, Math.exp(-elapsed * 3.125 * Constants.CAMERA_ZOOM_DECAY));
+		gameplayCamera.zoom = FlxMath.lerp(Constants.DEFAULT_CAM_ZOOM, bgCamera.zoom, Math.exp(-elapsed * 3.125 * Constants.CAMERA_ZOOM_DECAY));
+	}
+	function beatHit():Void {
+		bgCamera.zoom += 0.015 * songCamZoomIntensity;
+		gameplayCamera.zoom += 0.010 * songCamZoomIntensity;
 	}
 }

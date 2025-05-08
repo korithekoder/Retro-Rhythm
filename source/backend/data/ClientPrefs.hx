@@ -7,6 +7,14 @@ import flixel.input.keyboard.FlxKey;
 import haxe.Exception;
 
 /**
+ * Enum for determining which way the notes fall.
+ */
+enum ScrollType {
+    DOWNSCROLL;
+    UPSCROLL;
+}
+
+/**
  * Private class that holds all of the user's options.
  */
 @:structInit class SaveVariables {
@@ -20,6 +28,11 @@ import haxe.Exception;
      * Does the user have fullscreen enabled?
      */
     public var fullscreen:Bool = false;
+
+    /**
+     * Which way the notes fall.
+     */
+    public var scrollType:ScrollType = DOWNSCROLL;
 }
 
 /**
@@ -149,6 +162,14 @@ final class ClientPrefs {
             _controlsKeyboard = controlsData.data.keyboard;
         else
             _controlsKeyboard = Constants.DEFAULT_CONTROLS_KEYBOARD;
+
+        // Load any options that may not be present
+        for (key in Reflect.fields(_defaultOptions)) {
+            if (!Reflect.hasField(_options, key)) {
+                Reflect.setField(_options, key, Reflect.field(_defaultOptions, key));
+                FlxG.log.add('Added missing option "' + key + '" with default value.');
+            }
+        }
 
         // Set the volume keys
         FlxG.sound.volumeUpKeys = [controlsKeyboard.get('v_up')];

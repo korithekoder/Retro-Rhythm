@@ -46,7 +46,7 @@ final class PathUtil {
      * @return     The path of the sound effect.
      */
     public static inline function ofSound(name:String):String {
-        return 'assets/shared/sounds/$name${#if html5 '.mp3' #else '.ogg' #end}';
+        return 'assets/shared/sounds/$name${#if web '.mp3' #else '.ogg' #end}';
     }
 
     /**
@@ -56,7 +56,7 @@ final class PathUtil {
      * @return     The path of the soundtrack.
      */
     public static inline function ofMusic(name:String):String {
-        return 'assets/music/$name${#if html5 '.mp3' #else '.ogg' #end}';
+        return 'assets/music/$name${#if web '.mp3' #else '.ogg' #end}';
     }
 
     /**
@@ -67,6 +67,26 @@ final class PathUtil {
      */
     public static inline function ofChart(name:String):String {
         return 'assets/charts/$name.json';
+    }
+
+    /**
+     * Get the path of a song music file.
+     * 
+     * @param name The name of the song (this does not include the file extension).
+     * @return     The path of the song.
+     */
+    public static inline function ofSong(name:String):String {
+        return 'assets/songs/$name${#if web '.mp3' #else '.ogg' #end}';
+    }
+
+    /**
+     * Get the path of a song's background.
+     * 
+     * @param name The name of the background (this does not include the file extension).
+     * @return     The path of the background.
+     */
+    public static inline function ofBackground(name:String) {
+        return 'assets/backgrounds/$name.png';
     }
 
     /**

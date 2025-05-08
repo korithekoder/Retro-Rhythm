@@ -1313,6 +1313,7 @@
     "charter": "Kori",
     "name": "The Arcade 24'"
   },
-  "speed": 2.5,
+  "speed": 2.3,
+  "bmp": 175,
   "camzoom": 4
 }

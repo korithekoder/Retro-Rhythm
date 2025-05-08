@@ -1,16 +1,13 @@
 package backend.data;
 
+import flixel.FlxG;
 import flixel.input.keyboard.FlxKey;
 
 /**
  * Class that holds all of the general values that do not change.
  */
 final class Constants {
-    
-    /**
-	 * The default controls for the player. This is typically used when
-     * the player wishes to reset all of their binds.
-     */
+
 	public static final DEFAULT_CONTROLS_KEYBOARD:Map<String, FlxKey> = [
         // Strumline
         's_left'     => FlxKey.D,
@@ -26,22 +23,11 @@ final class Constants {
         // Misc.
         'fullscreen' => FlxKey.F11
     ];
-    
-    /**
-     * The name of the save file for the player's options.
-     */
+
     public static final OPTIONS_SAVE_BIND_ID:String = 'options';
 
-    /**
-     * The name of the save file for the player's controls.
-     */
     public static final CONTROLS_SAVE_BIND_ID:String = 'controls';
 
-    /**
-     * The splash texts that are displayed on the main menu.
-     * Each array contains two strings that are displayed on the screen.
-     * Note that any extra strings after the first two will be ignored.
-     */
     public static final SPLASH_TEXTS:Array<Array<String>> = [
         ['we gonna do', 'this thang'],
         ['bruh', 'moment'],
@@ -77,21 +63,47 @@ final class Constants {
 		['monopoly', 'such a gruesome game fr']
     ];
 
-    /**
-     * How long it takes for the fade effect to last when switching states.
-     */
-    public static final TRANSITION_DURATION:Float = 0.4;
+    public static final DEFAULT_METADATA:Dynamic = {
+		composer: 'Unknown',
+		charter: 'Unknown',
+		name: 'Unknown'
+	};
 
-    /**
-	 * Name of the music that plays when in the main menus.
-     */
+	public static final TRANSITION_DURATION:Float = 0.2;
+
     public static final MENU_MUSIC_NAME:String = 'Bit Destroyer';
 
     public static final CAMERA_ZOOM_DECAY:Float = 1;
 
-    public static final DEFAULT_CAM_ZOOM:Float = 1.05;
+	public static final NOTE_LANE_ALPHA_DECAY:Float = 1.5;
+
+    public static final DEFAULT_CAM_ZOOM:Float = 1.0;
+
+	public static final DEFAULT_NOTE_LANE_ALPHA:Float = 0.3;
 
     public static final CAM_ZOOM_MULTIPLIER:Float = 3;
+
+    public static final STRUMLINE_Y_OFFSET:Int = 120;
+
+	public static final NOTE_LANE_WIDTH:Int = 100;
+
+    public static final NOTE_LANE_SPACING:Float = 15;
+
+	public static final MARVELOUS_INDEX:Int = 0;
+
+	public static final SICK_INDEX:Int = 1;
+
+	public static final GREAT_INDEX:Int = 2;
+
+	public static final GOOD_INDEX:Int = 3;
+
+	public static final OKAY_INDEX:Int = 4;
+
+	public static final YIKES_INDEX:Int = 5;
+
+	public static final MISS_INDEX:Int = 6;
+
+	public static final HIT_WINDOW_OFFSETS:Array<Float> = [5.0, 10.0, 15.0, 25.0, 40.0, 60.0]; // In the order of "Marvelous!!!", "Sick!!", "Great!", "Good", "Okay", "Yikes..."
 
     private function new() {}
 }

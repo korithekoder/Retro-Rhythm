@@ -1,0 +1,33 @@
+package objects.gameplay;
+
+import flixel.math.FlxMath;
+import backend.data.Constants;
+import backend.util.GeneralUtil;
+import backend.Controls;
+import flixel.util.FlxColor;
+import flixel.FlxG;
+import flixel.FlxSprite;
+
+class NoteLane extends FlxSprite {
+
+    private var _lane:Int;
+
+    public function new(x:Float, color:FlxColor, lane:Int) {
+        super();
+        this.makeGraphic(Constants.NOTE_LANE_WIDTH, FlxG.height, color);
+        this.updateHitbox();
+        this.setPosition(x, 0);
+        this.alpha = 0.5;
+        this._lane = lane;
+    }
+
+    override function update(elapsed:Float) {
+        super.update(elapsed);
+
+        if (GeneralUtil.getPressedStrumBind(_lane)) {
+            this.alpha = 1;
+        }
+
+        this.alpha = FlxMath.lerp(Constants.DEFAULT_NOTE_LANE_ALPHA, this.alpha, Math.exp(-elapsed * 3.125 * Constants.NOTE_LANE_ALPHA_DECAY));
+    }
+}

@@ -50,6 +50,26 @@ final class GeneralUtil {
         }
     }
 
+    public static function getPressedStrumBind(lane:Int):Bool {
+        var arr:Array<Bool> = [
+            Controls.getBinds().S_LEFT_PRESSED,
+            Controls.getBinds().S_DOWN_PRESSED,
+            Controls.getBinds().S_UP_PRESSED,
+            Controls.getBinds().S_RIGHT_PRESSED
+        ];
+        return arr[lane];
+    }
+
+    public static function getJustPressedStrumBind(lane:Int):Bool {
+        var arr:Array<Bool> = [
+            Controls.getBinds().S_LEFT_JUST_PRESSED,
+            Controls.getBinds().S_DOWN_JUST_PRESSED,
+            Controls.getBinds().S_UP_JUST_PRESSED,
+            Controls.getBinds().S_RIGHT_JUST_PRESSED
+        ];
+        return arr[lane];
+    }
+
     /**
      * Tweens an `FlxSpriteGroup`'s members with ease.
      * 

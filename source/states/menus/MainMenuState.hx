@@ -30,7 +30,7 @@ class MainMenuState extends FlxTransitionableState {
         super.update(elapsed);
 
         if (FlxG.keys.justPressed.ANY) {
-            GeneralUtil.fadeIntoState(new PlayState(), Constants.TRANSITION_DURATION, false);
+            GeneralUtil.fadeIntoState(new PlayState('the-arcade-24'), Constants.TRANSITION_DURATION, false);
         }
     }
 }
