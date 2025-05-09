@@ -1,6 +1,5 @@
 package states;
 
-import flixel.FlxState;
 import backend.data.ClientPrefs;
 import backend.data.Constants;
 import backend.util.AssetUtil;
@@ -10,6 +9,7 @@ import backend.util.PathUtil;
 import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.FlxSprite;
+import flixel.FlxState;
 import flixel.addons.transition.FlxTransitionableState;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.math.FlxMath;
@@ -126,6 +126,7 @@ class PlayState extends FlxState {
 		add(strumline);
 
 		var songFile:FlxSound = new FlxSound();
+		CacheUtil.musicTime = 0;
 		songFile.loadEmbedded(PathUtil.ofSong(songName));
 		FlxG.sound.playMusic(PathUtil.ofSong(songName), false);
 
@@ -137,8 +138,11 @@ class PlayState extends FlxState {
 
 		timeSinceLastBeat += elapsed;
 
-		var musicTime:Float = (FlxG.sound.music.time / 1000);
+		// Get the current music time in seconds
+		var musicTime:Float = FlxG.sound.music.time / 1000;
+		CacheUtil.musicTime = musicTime;
 
+		// Handle beat logic
 		if (timeSinceLastBeat >= beatDuration) {
 			timeSinceLastBeat -= beatDuration;
 			beatCounter++;
@@ -148,29 +152,43 @@ class PlayState extends FlxState {
 			}
 		}
 
+		// Calculate the spawn buffer based on note speed, strumline position, and note height
+		var strumlinePosition:Float = (ClientPrefs.options.scrollType == DOWNSCROLL) ? FlxG.height
+			- Constants.STRUMLINE_Y_OFFSET : Constants.STRUMLINE_Y_OFFSET;
+		var spawnBuffer:Float = (strumlinePosition + (Constants.NOTE_SIZE / 2)) / noteSpeed;
+
+		// Spawn notes in sync with the music
 		if (songNotes.length > 0) {
 			var note:Dynamic = songNotes[0];
 			var noteTime:Float = AssetUtil.getDynamicField(note, 'time', 0);
 			var noteLane:Int = AssetUtil.getDynamicField(note, 'lane', 0);
 
-			if ((noteTime) <= musicTime + songSpeed) {  // FIX THIS!!!!
+			// Spawn the note when its time matches the music time minus the spawn buffer
+			if (noteTime <= musicTime + spawnBuffer + 0.4) {
 				var noteLaneX:Float = noteLanesGroup.members[noteLane].x;
-				var newNote:Note = new Note(noteLaneX, noteLane, ClientPrefs.options.scrollType, noteSpeed);
+				var newNote:Note = new Note(noteLaneX, noteLane, ClientPrefs.options.scrollType, noteSpeed, note);
 				newNote.cameras = [gameplayCamera];
 				notesGroup.add(newNote);
 				songNotes.shift();
 			}
 		}
 
+		// Update the position of falling notes
 		for (note in notesGroup.members) {
-			if (note == null || !note.alive) {
-				notesGroup.remove(note, true);
+			if (note != null) {
+				// Remove notes that are off-screen
+				if ((ClientPrefs.options.scrollType == DOWNSCROLL && note.y > FlxG.height)
+					|| (ClientPrefs.options.scrollType != DOWNSCROLL && note.y < 0)) {
+					notesGroup.remove(note, true);
+				}
 			}
 		}
 
+		// Camera zoom logic
 		bgCamera.zoom = FlxMath.lerp(Constants.DEFAULT_CAM_ZOOM, bgCamera.zoom, Math.exp(-elapsed * 3.125 * Constants.CAMERA_ZOOM_DECAY));
 		gameplayCamera.zoom = FlxMath.lerp(Constants.DEFAULT_CAM_ZOOM, bgCamera.zoom, Math.exp(-elapsed * 3.125 * Constants.CAMERA_ZOOM_DECAY));
 	}
+
 	function beatHit():Void {
 		bgCamera.zoom += 0.015 * songCamZoomIntensity;
 		gameplayCamera.zoom += 0.010 * songCamZoomIntensity;

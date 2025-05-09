@@ -32,7 +32,7 @@ enum ScrollType {
     /**
      * Which way the notes fall.
      */
-    public var scrollType:ScrollType = DOWNSCROLL;
+    public var scrollType:ScrollType = UPSCROLL;
 }
 
 /**

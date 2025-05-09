@@ -85,6 +85,8 @@ final class Constants {
 
     public static final STRUMLINE_Y_OFFSET:Int = 120;
 
+    public static final NOTE_SIZE:Int = 100;
+
 	public static final NOTE_LANE_WIDTH:Int = 100;
 
     public static final NOTE_LANE_SPACING:Float = 15;
