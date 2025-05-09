@@ -1,5 +1,6 @@
 package backend.data;
 
+import flixel.util.FlxColor;
 import flixel.FlxG;
 import flixel.input.keyboard.FlxKey;
 
@@ -104,6 +105,10 @@ final class Constants {
 	public static final YIKES_INDEX:Int = 5;
 
 	public static final MISS_INDEX:Int = 6;
+
+    public static final HIT_WINDOW_DISPLAY_TEXTS:Array<String> = ['Marvelous!!!', 'Sick!!', 'Great!', 'Good', 'Okay', 'Yikes...', 'Miss'];
+
+    public static final HIT_WINDOW_DISPLAY_COLORS:Array<FlxColor> = [FlxColor.BLUE, FlxColor.CYAN, FlxColor.LIME, FlxColor.GREEN, FlxColor.ORANGE, FlxColor.RED, FlxColor.GRAY];
 
 	public static final HIT_WINDOW_OFFSETS:Array<Float> = [5.0, 10.0, 15.0, 25.0, 40.0, 60.0]; // In the order of "Marvelous!!!", "Sick!!", "Great!", "Good", "Okay", "Yikes..."
 

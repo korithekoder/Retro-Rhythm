@@ -22,9 +22,9 @@ import objects.gameplay.NoteLane;
 
 class PlayState extends FlxState {
 
-	public static var bgCamera:FlxCamera;
-	public static var gameplayCamera:FlxCamera;
-	public static var uiCamera:FlxCamera;
+	public var bgCamera:FlxCamera;
+	public var gameplayCamera:FlxCamera;
+	public var uiCamera:FlxCamera;
 
 	var songId:String;
 	var songData:Dynamic;
@@ -48,13 +48,14 @@ class PlayState extends FlxState {
 	var noteLanesGroup:FlxTypedGroup<NoteLane>;
 	var notesGroup:FlxTypedGroup<Note>;
 
+	var noteHitsBg:FlxSprite;
+	var noteHitsGroup:FlxTypedGroup<FlxText>;
+
 	var strumline:FlxSprite;
 
 	var totalTimePassed:Float = 0;
 
 	var bgSprite:FlxSprite;
-
-	var songDoneTimer:FlxTimer;
 
 	public function new(songId:String) {
 		super();
@@ -104,7 +105,7 @@ class PlayState extends FlxState {
 		noteLanesGroup.cameras = [gameplayCamera];
 		add(noteLanesGroup);
 
-		var newX:Float = 350;
+		var newX:Float = 275;
 		for (i in 0...4) {
 			var newLane:NoteLane = new NoteLane(newX, FlxColor.BLUE, i);
 			newLane.cameras = [gameplayCamera];
@@ -124,13 +125,35 @@ class PlayState extends FlxState {
 		strumline.y = (ClientPrefs.options.scrollType == DOWNSCROLL) ? FlxG.height - Constants.STRUMLINE_Y_OFFSET : Constants.STRUMLINE_Y_OFFSET;
 		strumline.cameras = [gameplayCamera];
 		add(strumline);
+		
+		noteHitsBg = new FlxSprite();
+		noteHitsBg.makeGraphic(400, FlxG.height, FlxColor.BLACK);
+		noteHitsBg.updateHitbox();
+		noteHitsBg.alpha = 0.6;
+		noteHitsBg.x = FlxG.width - 475;
+		noteHitsBg.y = 0;
+		noteHitsBg.cameras = [uiCamera];
+		add(noteHitsBg);
 
-		var songFile:FlxSound = new FlxSound();
-		CacheUtil.musicTime = 0;
-		songFile.loadEmbedded(PathUtil.ofSong(songName));
+		noteHitsGroup = new FlxTypedGroup<FlxText>();
+		noteHitsGroup.cameras = [uiCamera];
+		add(noteHitsGroup);
+
+		var newY:Float = 40;
+		for (i in 0...7) {
+			var newText:FlxText = new FlxText();
+			newText.text = '${Constants.HIT_WINDOW_DISPLAY_TEXTS[i]}: 0';
+			newText.color = Constants.HIT_WINDOW_DISPLAY_COLORS[i];
+			newText.size = 64;
+			newText.updateHitbox();
+			// newText.x = noteHitsBg.x + (noteHitsBg.width - newText.width);
+			newText.x = noteHitsBg.x + 8;  // Use the commented out line to align it to the right side!
+			newText.y = newY;
+			noteHitsGroup.add(newText);
+			newY += newText.height - 12;
+		}
+
 		FlxG.sound.playMusic(PathUtil.ofSong(songName), false);
-
-		songDoneTimer = new FlxTimer();
 	}
 
 	override public function update(elapsed:Float) {
@@ -186,11 +209,13 @@ class PlayState extends FlxState {
 
 		// Camera zoom logic
 		bgCamera.zoom = FlxMath.lerp(Constants.DEFAULT_CAM_ZOOM, bgCamera.zoom, Math.exp(-elapsed * 3.125 * Constants.CAMERA_ZOOM_DECAY));
-		gameplayCamera.zoom = FlxMath.lerp(Constants.DEFAULT_CAM_ZOOM, bgCamera.zoom, Math.exp(-elapsed * 3.125 * Constants.CAMERA_ZOOM_DECAY));
+		gameplayCamera.zoom = FlxMath.lerp(Constants.DEFAULT_CAM_ZOOM, gameplayCamera.zoom, Math.exp(-elapsed * 3.125 * Constants.CAMERA_ZOOM_DECAY));
+		uiCamera.zoom = FlxMath.lerp(Constants.DEFAULT_CAM_ZOOM, uiCamera.zoom, Math.exp(-elapsed * 3.125 * Constants.CAMERA_ZOOM_DECAY));
 	}
 
 	function beatHit():Void {
 		bgCamera.zoom += 0.015 * songCamZoomIntensity;
 		gameplayCamera.zoom += 0.010 * songCamZoomIntensity;
+		uiCamera.zoom += 0.010 * songCamZoomIntensity;
 	}
 }
