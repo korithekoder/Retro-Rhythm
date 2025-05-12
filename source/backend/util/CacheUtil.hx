@@ -16,7 +16,5 @@ final class CacheUtil {
 
     public static var hits:Array<Int> = [0, 0, 0, 0, 0, 0, 0];
 
-    public static var musicTime:Float = 0;
-
     private function new() {}
 }

@@ -70,6 +70,17 @@ final class GeneralUtil {
         return arr[lane];
     }
 
+    public static function getHitTypeIndexByDistance(distance:Float):Int {
+        var idx:Int = 0;
+        for (t in Constants.HIT_WINDOW_OFFSETS) {
+            if (distance <= t) {
+                return idx;
+            }
+            idx++;
+        }
+        return 5;
+    }
+
     /**
      * Tweens an `FlxSpriteGroup`'s members with ease.
      * 

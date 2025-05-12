@@ -1,26 +1,23 @@
 package states;
 
+import flixel.addons.transition.FlxTransitionableState;
+import states.menus.MainMenuState;
 import backend.data.ClientPrefs;
 import backend.data.Constants;
 import backend.util.AssetUtil;
 import backend.util.CacheUtil;
-import backend.util.GeneralUtil;
 import backend.util.PathUtil;
 import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.FlxSprite;
-import flixel.FlxState;
-import flixel.addons.transition.FlxTransitionableState;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.math.FlxMath;
-import flixel.sound.FlxSound;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
-import flixel.util.FlxTimer;
 import objects.gameplay.Note;
 import objects.gameplay.NoteLane;
 
-class PlayState extends FlxState {
+class PlayState extends FlxTransitionableState {
 
 	public var bgCamera:FlxCamera;
 	public var gameplayCamera:FlxCamera;
@@ -81,6 +78,7 @@ class PlayState extends FlxState {
 	
 	override public function create() {
 		super.create();
+
 		CacheUtil.canPlayMenuMusic = true;
 
 		bgCamera = new FlxCamera();
@@ -163,14 +161,13 @@ class PlayState extends FlxState {
 
 		// Get the current music time in seconds
 		var musicTime:Float = FlxG.sound.music.time / 1000;
-		CacheUtil.musicTime = musicTime;
 
 		// Handle beat logic
 		if (timeSinceLastBeat >= beatDuration) {
 			timeSinceLastBeat -= beatDuration;
 			beatCounter++;
 
-			if (beatCounter % 1 == 0) {
+			if (beatCounter % 2 == 0) {
 				beatHit();
 			}
 		}
@@ -181,13 +178,12 @@ class PlayState extends FlxState {
 		var spawnBuffer:Float = (strumlinePosition + (Constants.NOTE_SIZE / 2)) / noteSpeed;
 
 		// Spawn notes in sync with the music
-		if (songNotes.length > 0) {
-			var note:Dynamic = songNotes[0];
+		for (note in songNotes) {
 			var noteTime:Float = AssetUtil.getDynamicField(note, 'time', 0);
 			var noteLane:Int = AssetUtil.getDynamicField(note, 'lane', 0);
 
 			// Spawn the note when its time matches the music time minus the spawn buffer
-			if (noteTime <= musicTime + spawnBuffer + 0.4) {
+			if (noteTime <= musicTime + spawnBuffer) {
 				var noteLaneX:Float = noteLanesGroup.members[noteLane].x;
 				var newNote:Note = new Note(noteLaneX, noteLane, ClientPrefs.options.scrollType, noteSpeed, note);
 				newNote.cameras = [gameplayCamera];
@@ -207,6 +203,21 @@ class PlayState extends FlxState {
 			}
 		}
 
+		if (FlxG.keys.justPressed.R) {
+			CacheUtil.hits = Constants.NEW_HIT_NOTES_ARRAY;
+			FlxG.switchState(() -> new PlayState('the-arcade-24'));
+		}
+
+		if (FlxG.sound.music.time >= FlxG.sound.music.length + 1000) {
+			FlxG.switchState(() -> new MainMenuState());
+		}
+
+		var idx:Int = 0;
+		for (ht in noteHitsGroup.members) {
+			ht.text = '${Constants.HIT_WINDOW_DISPLAY_TEXTS[idx]}: ${CacheUtil.hits[idx]}';
+			idx++;
+		}
+
 		// Camera zoom logic
 		bgCamera.zoom = FlxMath.lerp(Constants.DEFAULT_CAM_ZOOM, bgCamera.zoom, Math.exp(-elapsed * 3.125 * Constants.CAMERA_ZOOM_DECAY));
 		gameplayCamera.zoom = FlxMath.lerp(Constants.DEFAULT_CAM_ZOOM, gameplayCamera.zoom, Math.exp(-elapsed * 3.125 * Constants.CAMERA_ZOOM_DECAY));
@@ -215,7 +226,7 @@ class PlayState extends FlxState {
 
 	function beatHit():Void {
 		bgCamera.zoom += 0.015 * songCamZoomIntensity;
-		gameplayCamera.zoom += 0.010 * songCamZoomIntensity;
-		uiCamera.zoom += 0.010 * songCamZoomIntensity;
+		gameplayCamera.zoom += 0.020 * songCamZoomIntensity;
+		uiCamera.zoom += 0.025 * songCamZoomIntensity;
 	}
 }

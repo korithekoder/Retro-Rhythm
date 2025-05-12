@@ -25,7 +25,7 @@ class NoteLane extends FlxSprite {
         super.update(elapsed);
 
         if (GeneralUtil.getPressedStrumBind(_lane)) {
-            this.alpha = 1;
+            this.alpha = 0.8;
         }
 
         this.alpha = FlxMath.lerp(Constants.DEFAULT_NOTE_LANE_ALPHA, this.alpha, Math.exp(-elapsed * 3.125 * Constants.NOTE_LANE_ALPHA_DECAY));

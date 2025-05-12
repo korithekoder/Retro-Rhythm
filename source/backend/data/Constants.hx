@@ -78,6 +78,8 @@ final class Constants {
 
 	public static final NOTE_LANE_ALPHA_DECAY:Float = 1.5;
 
+    public static final NOTE_DESTROY_DURATION:Float = 0.15;
+
     public static final DEFAULT_CAM_ZOOM:Float = 1.0;
 
 	public static final DEFAULT_NOTE_LANE_ALPHA:Float = 0.3;
@@ -106,11 +108,13 @@ final class Constants {
 
 	public static final MISS_INDEX:Int = 6;
 
-    public static final HIT_WINDOW_DISPLAY_TEXTS:Array<String> = ['Marvelous!!!', 'Sick!!', 'Great!', 'Good', 'Okay', 'Yikes...', 'Miss'];
+    public static final HIT_WINDOW_DISPLAY_TEXTS:Array<String> = ['Marvelous!!!', 'Sick!!', 'Great!', 'Good', 'Okay', 'Yikes', 'Miss'];
 
     public static final HIT_WINDOW_DISPLAY_COLORS:Array<FlxColor> = [FlxColor.BLUE, FlxColor.CYAN, FlxColor.LIME, FlxColor.GREEN, FlxColor.ORANGE, FlxColor.RED, FlxColor.GRAY];
 
-	public static final HIT_WINDOW_OFFSETS:Array<Float> = [5.0, 10.0, 15.0, 25.0, 40.0, 60.0]; // In the order of "Marvelous!!!", "Sick!!", "Great!", "Good", "Okay", "Yikes..."
+	public static final HIT_WINDOW_OFFSETS:Array<Float> = [30.0, 50.0, 70.0, 90.0, 100.0, 120.0]; // In the order of "Marvelous!!!", "Sick!!", "Great!", "Good", "Okay", "Yikes"
+
+    public static final NEW_HIT_NOTES_ARRAY:Array<Int> = [0, 0, 0, 0, 0, 0, 0];
 
     private function new() {}
 }
