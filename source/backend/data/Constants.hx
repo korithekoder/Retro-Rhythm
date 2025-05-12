@@ -1,8 +1,9 @@
 package backend.data;
 
-import flixel.util.FlxColor;
+import openfl.filters.GlowFilter;
 import flixel.FlxG;
 import flixel.input.keyboard.FlxKey;
+import flixel.util.FlxColor;
 
 /**
  * Class that holds all of the general values that do not change.
@@ -76,6 +77,12 @@ final class Constants {
 
     public static final CAMERA_ZOOM_DECAY:Float = 1;
 
+	public static final HIT_TYPE_TEXT_DECAY = 0.7;
+
+    public static final HIT_TYPE_TEXT_SHADOW_OFFSET:Int = 60;
+
+	public static final NOTE_LANE_COLORS:Array<FlxColor> = [FlxColor.LIME, FlxColor.BLUE, FlxColor.RED, FlxColor.YELLOW];
+
 	public static final NOTE_LANE_ALPHA_DECAY:Float = 1.5;
 
     public static final NOTE_DESTROY_DURATION:Float = 0.15;
@@ -109,6 +116,8 @@ final class Constants {
 	public static final MISS_INDEX:Int = 6;
 
     public static final HIT_WINDOW_DISPLAY_TEXTS:Array<String> = ['Marvelous!!!', 'Sick!!', 'Great!', 'Good', 'Okay', 'Yikes', 'Miss'];
+
+	public static final HIT_WINDOW_TEXT_SIZE:Int = 64;
 
     public static final HIT_WINDOW_DISPLAY_COLORS:Array<FlxColor> = [FlxColor.BLUE, FlxColor.CYAN, FlxColor.LIME, FlxColor.GREEN, FlxColor.ORANGE, FlxColor.RED, FlxColor.GRAY];
 

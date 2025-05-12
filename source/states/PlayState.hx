@@ -1,7 +1,6 @@
 package states;
 
-import flixel.addons.transition.FlxTransitionableState;
-import states.menus.MainMenuState;
+import backend.util.GeneralUtil;
 import backend.data.ClientPrefs;
 import backend.data.Constants;
 import backend.util.AssetUtil;
@@ -10,14 +9,19 @@ import backend.util.PathUtil;
 import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.FlxSprite;
+import flixel.addons.transition.FlxTransitionableState;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.math.FlxMath;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import objects.gameplay.Note;
 import objects.gameplay.NoteLane;
+import states.menus.MainMenuState;
 
 class PlayState extends FlxTransitionableState {
+
+	public static var noteHitsGroup:FlxTypedGroup<FlxText>;
+	public static var statsGroup:FlxTypedGroup<FlxText>;
 
 	public var bgCamera:FlxCamera;
 	public var gameplayCamera:FlxCamera;
@@ -37,6 +41,9 @@ class PlayState extends FlxTransitionableState {
 	var songCamZoomIntensity:Float;
 	var songLength:Float;
 
+	var accuracyText:FlxText;
+	var comboText:FlxText;
+
 	var beatDuration:Float;
 	var beatCounter:Int = 0;
 	var timeSinceLastBeat:Float = 0;
@@ -46,11 +53,7 @@ class PlayState extends FlxTransitionableState {
 	var notesGroup:FlxTypedGroup<Note>;
 
 	var noteHitsBg:FlxSprite;
-	var noteHitsGroup:FlxTypedGroup<FlxText>;
-
 	var strumline:FlxSprite;
-
-	var totalTimePassed:Float = 0;
 
 	var bgSprite:FlxSprite;
 
@@ -105,7 +108,7 @@ class PlayState extends FlxTransitionableState {
 
 		var newX:Float = 275;
 		for (i in 0...4) {
-			var newLane:NoteLane = new NoteLane(newX, FlxColor.BLUE, i);
+			var newLane:NoteLane = new NoteLane(newX, Constants.NOTE_LANE_COLORS[i], i);
 			newLane.cameras = [gameplayCamera];
 			noteLanesGroup.add(newLane);
 			newX += Constants.NOTE_LANE_WIDTH + Constants.NOTE_LANE_SPACING;
@@ -139,10 +142,14 @@ class PlayState extends FlxTransitionableState {
 
 		var newY:Float = 40;
 		for (i in 0...7) {
+			var color:FlxColor = Constants.HIT_WINDOW_DISPLAY_COLORS[i];
+			var scOffset:Int = Constants.HIT_TYPE_TEXT_SHADOW_OFFSET;
+			var shadowColor:FlxColor = FlxColor.fromRGB(color.red - scOffset, color.green - scOffset, color.blue - scOffset);
 			var newText:FlxText = new FlxText();
 			newText.text = '${Constants.HIT_WINDOW_DISPLAY_TEXTS[i]}: 0';
 			newText.color = Constants.HIT_WINDOW_DISPLAY_COLORS[i];
-			newText.size = 64;
+			newText.size = Constants.HIT_WINDOW_TEXT_SIZE;
+			newText.setBorderStyle(FlxTextBorderStyle.SHADOW, shadowColor, 4);
 			newText.updateHitbox();
 			// newText.x = noteHitsBg.x + (noteHitsBg.width - newText.width);
 			newText.x = noteHitsBg.x + 8;  // Use the commented out line to align it to the right side!
@@ -150,6 +157,34 @@ class PlayState extends FlxTransitionableState {
 			noteHitsGroup.add(newText);
 			newY += newText.height - 12;
 		}
+
+		statsGroup = new FlxTypedGroup<FlxText>();
+		statsGroup.cameras = [uiCamera];
+		add(statsGroup);
+
+		newY += 30;
+
+		accuracyText = new FlxText();
+		accuracyText.text = 'Accuracy: 0%';
+		accuracyText.size = 32;
+		accuracyText.color = FlxColor.WHITE;
+		accuracyText.setBorderStyle(FlxTextBorderStyle.SHADOW, FlxColor.GRAY, 3);
+		accuracyText.updateHitbox();
+		accuracyText.x = noteHitsBg.x + 8;
+		accuracyText.y = newY;
+		statsGroup.add(accuracyText);
+
+		newY += accuracyText.height - 8;
+
+		comboText = new FlxText();
+		comboText.text = 'Combo: x0';
+		comboText.size = 32;
+		comboText.color = FlxColor.WHITE;
+		comboText.setBorderStyle(FlxTextBorderStyle.SHADOW, FlxColor.GRAY, 3);
+		comboText.updateHitbox();
+		comboText.x = noteHitsBg.x + 8;
+		comboText.y = newY;
+		statsGroup.add(comboText);
 
 		FlxG.sound.playMusic(PathUtil.ofSong(songName), false);
 	}
@@ -208,15 +243,19 @@ class PlayState extends FlxTransitionableState {
 			FlxG.switchState(() -> new PlayState('the-arcade-24'));
 		}
 
-		if (FlxG.sound.music.time >= FlxG.sound.music.length + 1000) {
-			FlxG.switchState(() -> new MainMenuState());
+		if (FlxG.sound.music.time >= FlxG.sound.music.length) {
+			GeneralUtil.fadeIntoState(new MainMenuState(), Constants.TRANSITION_DURATION, false);
 		}
 
 		var idx:Int = 0;
 		for (ht in noteHitsGroup.members) {
 			ht.text = '${Constants.HIT_WINDOW_DISPLAY_TEXTS[idx]}: ${CacheUtil.hits[idx]}';
+			ht.size = Std.int(FlxMath.lerp(Constants.HIT_WINDOW_TEXT_SIZE, ht.size, Math.exp(-elapsed * 3.125 * Constants.HIT_TYPE_TEXT_DECAY)));
 			idx++;
 		}
+
+		accuracyText.text = 'Accuracy: 0%';
+		comboText.text = 'Combo: x${CacheUtil.combo}';
 
 		// Camera zoom logic
 		bgCamera.zoom = FlxMath.lerp(Constants.DEFAULT_CAM_ZOOM, bgCamera.zoom, Math.exp(-elapsed * 3.125 * Constants.CAMERA_ZOOM_DECAY));
