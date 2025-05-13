@@ -18,5 +18,11 @@ final class CacheUtil {
 
     public static var combo:Int = 0;
 
+    public static var accuracy:Float = Math.NaN;
+
+    public static var totalHitPoints:Int = 0;  // Used for accuracy (this is all of the actual notes that the player)
+
+    public static var realHitPoints:Int = 0;  // Used for accuracy (this is basically if all of the notes were marvelous notes added together)
+
     private function new() {}
 }

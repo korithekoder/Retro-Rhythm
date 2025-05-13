@@ -119,9 +119,13 @@ final class Constants {
 
 	public static final HIT_WINDOW_TEXT_SIZE:Int = 64;
 
+    public static final HIT_WINDOW_SCORES:Array<Int> = [800, 700, 525, 430, 200, 0, -200];
+
+    public static final HIT_WINDOW_ACCURACY_INCREMENTS:Array<Int> = [20, 18, 15, 12, 8, 3, 0];
+
     public static final HIT_WINDOW_DISPLAY_COLORS:Array<FlxColor> = [FlxColor.BLUE, FlxColor.CYAN, FlxColor.LIME, FlxColor.GREEN, FlxColor.ORANGE, FlxColor.RED, FlxColor.GRAY];
 
-	public static final HIT_WINDOW_OFFSETS:Array<Float> = [30.0, 50.0, 70.0, 90.0, 100.0, 120.0]; // In the order of "Marvelous!!!", "Sick!!", "Great!", "Good", "Okay", "Yikes"
+	public static final HIT_WINDOW_OFFSETS:Array<Float> = [50.0, 70.0, 85.0, 100.0, 130.0, 160.0];  // In the order of "Marvelous!!!", "Sick!!", "Great!", "Good", "Okay", "Yikes"
 
     public static final NEW_HIT_NOTES_ARRAY:Array<Int> = [0, 0, 0, 0, 0, 0, 0];
 

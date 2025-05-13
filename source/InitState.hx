@@ -1,3 +1,4 @@
+import backend.data.Constants;
 import flixel.util.FlxColor;
 import flixel.addons.transition.TransitionData;
 import flixel.addons.transition.FlxTransitionableState;
@@ -71,7 +72,7 @@ class InitState extends FlxState {
 
 		// Set the outro shit for states
 		FlxTransitionableState.defaultTransIn = new TransitionData(TransitionType.FADE, FlxColor.BLACK);
-		FlxTransitionableState.defaultTransOut = new TransitionData(TransitionType.FADE, FlxColor.BLACK);
+		FlxTransitionableState.defaultTransOut = new TransitionData(TransitionType.FADE, FlxColor.BLACK, Constants.TRANSITION_DURATION);
 
 		// Disable the right-click context menu for HTML5
 		#if html5

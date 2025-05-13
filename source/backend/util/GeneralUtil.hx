@@ -1,5 +1,7 @@
 package backend.util;
 
+import flixel.group.FlxGroup;
+import objects.gameplay.NoteLane;
 import backend.data.Constants;
 import flixel.FlxG;
 import flixel.FlxSprite;
@@ -94,6 +96,42 @@ final class GeneralUtil {
             if (obj != null) {            
                 FlxTween.tween(obj, options, duration, types);
             }
+        }
+    }
+
+    public static function getSpriteGroupWidthAndHeight(group:FlxGroup):Array<Float> {
+        var minX:Float = Math.NEGATIVE_INFINITY;
+        var minY:Float = Math.NEGATIVE_INFINITY;
+        var maxX:Float = Math.POSITIVE_INFINITY;
+        var maxY:Float = Math.POSITIVE_INFINITY;
+
+        for (spr in group.members) {
+            var s:FlxSprite = cast(spr, FlxSprite);
+            if (s != null) {
+                minX = Math.min(minX, s.x);
+                minY = Math.min(minY, s.y);
+                maxX = Math.max(maxX, s.x);
+                maxY = Math.max(maxY, s.y);
+            }
+        }
+
+        return [
+            (minX + maxX) / 2,
+            (minY + maxY) / 2
+        ];
+    }
+
+    public static function getNoteLaneWidth(group:FlxTypedGroup<NoteLane>):Float {
+        var toReturn:Float = 0;
+        for (s in group.members) {
+            toReturn += s.width;
+        }
+        return toReturn;
+    }
+
+    public static function resetHitsArray():Void {
+        for (i in 0...CacheUtil.hits.length) {
+            CacheUtil.hits[i] = 0;
         }
     }
 

@@ -1,15 +1,15 @@
 package states;
 
-import backend.util.GeneralUtil;
+import flixel.FlxState;
+import backend.util.AssetUtil;
 import backend.data.ClientPrefs;
 import backend.data.Constants;
-import backend.util.AssetUtil;
 import backend.util.CacheUtil;
+import backend.util.GeneralUtil;
 import backend.util.PathUtil;
 import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.FlxSprite;
-import flixel.addons.transition.FlxTransitionableState;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.math.FlxMath;
 import flixel.text.FlxText;
@@ -18,14 +18,25 @@ import objects.gameplay.Note;
 import objects.gameplay.NoteLane;
 import states.menus.MainMenuState;
 
-class PlayState extends FlxTransitionableState {
+class PlayState extends FlxState {
 
 	public static var noteHitsGroup:FlxTypedGroup<FlxText>;
 	public static var statsGroup:FlxTypedGroup<FlxText>;
+	public static var noteLanesGroup:FlxTypedGroup<NoteLane>;
 
-	public var bgCamera:FlxCamera;
-	public var gameplayCamera:FlxCamera;
-	public var uiCamera:FlxCamera;
+	public static var bgCamera:FlxCamera;
+	public static var gameplayCamera:FlxCamera;
+	public static var uiCamera:FlxCamera;
+
+	public static var noteHitTypePopup:FlxText;
+	public static var comboPopup:FlxText;
+
+	public static var firstNotes:Map<Int, Note> = [
+		0 => null,
+		1 => null,
+		2 => null,
+		3 => null
+	];
 
 	var songId:String;
 	var songData:Dynamic;
@@ -43,13 +54,15 @@ class PlayState extends FlxTransitionableState {
 
 	var accuracyText:FlxText;
 	var comboText:FlxText;
+	var scoreText:FlxText;
 
 	var beatDuration:Float;
+	var beatDurationMS:Float;
 	var beatCounter:Int = 0;
-	var timeSinceLastBeat:Float = 0;
+	var lastBeat:Int = -1;
 
+	var currentNoteIdx:Int = 0;
 	var noteSpeed:Float;
-	var noteLanesGroup:FlxTypedGroup<NoteLane>;
 	var notesGroup:FlxTypedGroup<Note>;
 
 	var noteHitsBg:FlxSprite;
@@ -75,6 +88,7 @@ class PlayState extends FlxTransitionableState {
 		this.songCamZoomIntensity = AssetUtil.getDynamicField(this.songData, 'camzoom', 2);
 
 		this.beatDuration = 60 / this.songBPM;
+		this.beatDurationMS = 60000 / this.songBPM;
 
 		this.noteSpeed = (FlxG.height / this.beatDuration) * this.songSpeed;
 	}
@@ -83,6 +97,10 @@ class PlayState extends FlxTransitionableState {
 		super.create();
 
 		CacheUtil.canPlayMenuMusic = true;
+		CacheUtil.realHitPoints = 0;
+		CacheUtil.totalHitPoints = 0;
+		CacheUtil.combo = 0;
+		GeneralUtil.resetHitsArray();
 
 		bgCamera = new FlxCamera();
 		gameplayCamera = new FlxCamera();
@@ -186,24 +204,57 @@ class PlayState extends FlxTransitionableState {
 		comboText.y = newY;
 		statsGroup.add(comboText);
 
+		newY += comboText.height - 8;
+
+		scoreText = new FlxText();
+		scoreText.text = 'Score: 0';
+		scoreText.size = 32;
+		scoreText.color = FlxColor.WHITE;
+		scoreText.setBorderStyle(FlxTextBorderStyle.SHADOW, FlxColor.GRAY, 3);
+		scoreText.updateHitbox();
+		scoreText.x = noteHitsBg.x + 8;
+		scoreText.y = newY;
+		statsGroup.add(scoreText);
+
+		noteHitTypePopup = new FlxText();
+		noteHitTypePopup.size = 80;
+		noteHitTypePopup.setBorderStyle(FlxTextBorderStyle.SHADOW, 0, 5);
+		noteHitTypePopup.x = 0;
+		noteHitTypePopup.y = 400;
+		noteHitTypePopup.alpha = 0;
+		noteHitTypePopup.cameras = [uiCamera];
+		add(noteHitTypePopup);
+
+		comboPopup = new FlxText();
+		comboPopup.size = 60;
+		comboPopup.setBorderStyle(FlxTextBorderStyle.SHADOW, FlxColor.GRAY, 5);
+		comboPopup.x = 0;
+		comboPopup.y = noteHitTypePopup.y + noteHitTypePopup.height + 8;
+		comboPopup.alpha = 0;
+		comboPopup.cameras = [uiCamera];
+		add(comboPopup);
+
 		FlxG.sound.playMusic(PathUtil.ofSong(songName), false);
 	}
 
 	override public function update(elapsed:Float) {
 		super.update(elapsed);
 
-		timeSinceLastBeat += elapsed;
-
 		// Get the current music time in seconds
 		var musicTime:Float = FlxG.sound.music.time / 1000;
 
 		// Handle beat logic
-		if (timeSinceLastBeat >= beatDuration) {
-			timeSinceLastBeat -= beatDuration;
-			beatCounter++;
-
-			if (beatCounter % 2 == 0) {
+		var currentBeat:Int = Math.floor(FlxG.sound.music.time / beatDurationMS);
+		if (currentBeat != lastBeat) {
+			lastBeat = currentBeat;
+			if (beatCounter % 4 == 0) {
 				beatHit();
+			}
+		}
+
+		for (note in notesGroup.members) {
+			if (!note.exists) {
+				notesGroup.remove(note, true);
 			}
 		}
 
@@ -220,30 +271,31 @@ class PlayState extends FlxTransitionableState {
 			// Spawn the note when its time matches the music time minus the spawn buffer
 			if (noteTime <= musicTime + spawnBuffer) {
 				var noteLaneX:Float = noteLanesGroup.members[noteLane].x;
-				var newNote:Note = new Note(noteLaneX, noteLane, ClientPrefs.options.scrollType, noteSpeed, note);
+				var newNote:Note = new Note(noteLaneX, noteLane, ClientPrefs.options.scrollType, noteSpeed, note, currentNoteIdx);
 				newNote.cameras = [gameplayCamera];
 				notesGroup.add(newNote);
 				songNotes.shift();
+				currentNoteIdx++;
 			}
 		}
 
-		// Update the position of falling notes
 		for (note in notesGroup.members) {
-			if (note != null) {
-				// Remove notes that are off-screen
-				if ((ClientPrefs.options.scrollType == DOWNSCROLL && note.y > FlxG.height)
-					|| (ClientPrefs.options.scrollType != DOWNSCROLL && note.y < 0)) {
-					notesGroup.remove(note, true);
+			for (lane in 0...4) {
+				var firstNote:Note = firstNotes.get(lane);
+				if (firstNote == null) {
+					firstNotes.set(lane, note);
+				} else if (note.lane == lane && !firstNotes.get(lane).alive) {
+					firstNotes.set(lane, note);
 				}
 			}
 		}
 
 		if (FlxG.keys.justPressed.R) {
-			CacheUtil.hits = Constants.NEW_HIT_NOTES_ARRAY;
-			FlxG.switchState(() -> new PlayState('the-arcade-24'));
+			GeneralUtil.fadeIntoState(new PlayState(songId), Constants.TRANSITION_DURATION, false);
 		}
 
 		if (FlxG.sound.music.time >= FlxG.sound.music.length) {
+			trace('song complete!');
 			GeneralUtil.fadeIntoState(new MainMenuState(), Constants.TRANSITION_DURATION, false);
 		}
 
@@ -254,8 +306,10 @@ class PlayState extends FlxTransitionableState {
 			idx++;
 		}
 
-		accuracyText.text = 'Accuracy: 0%';
+		CacheUtil.accuracy = FlxMath.roundDecimal((CacheUtil.realHitPoints / CacheUtil.totalHitPoints) * 100, 2);
+		accuracyText.text = 'Accuracy: ${(!Math.isNaN(CacheUtil.accuracy)) ? CacheUtil.accuracy : 0}%';
 		comboText.text = 'Combo: x${CacheUtil.combo}';
+		scoreText.text = 'Score: ${CacheUtil.score}';
 
 		// Camera zoom logic
 		bgCamera.zoom = FlxMath.lerp(Constants.DEFAULT_CAM_ZOOM, bgCamera.zoom, Math.exp(-elapsed * 3.125 * Constants.CAMERA_ZOOM_DECAY));
