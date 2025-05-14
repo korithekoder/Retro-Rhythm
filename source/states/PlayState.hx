@@ -1,18 +1,19 @@
 package states;
 
-import flixel.FlxState;
-import backend.util.AssetUtil;
 import backend.data.ClientPrefs;
 import backend.data.Constants;
+import backend.util.AssetUtil;
 import backend.util.CacheUtil;
 import backend.util.GeneralUtil;
 import backend.util.PathUtil;
 import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.FlxSprite;
+import flixel.FlxState;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.math.FlxMath;
 import flixel.text.FlxText;
+import flixel.ui.FlxBar;
 import flixel.util.FlxColor;
 import objects.gameplay.Note;
 import objects.gameplay.NoteLane;
@@ -56,10 +57,23 @@ class PlayState extends FlxState {
 	var comboText:FlxText;
 	var scoreText:FlxText;
 
+	var songNameText:FlxText;
+
+	var healthBar:FlxBar;
+	var timeBar:FlxBar;
+	var healthBarShadow:FlxSprite;
+	var timeBarShadow:FlxSprite;
+	var healthBarTextDisplay:FlxText;
+	var timeBarTextDisplay:FlxText;
+
 	var beatDuration:Float;
 	var beatDurationMS:Float;
 	var beatCounter:Int = 0;
 	var lastBeat:Int = -1;
+
+	var musicTime:Float;
+
+	var health:Float;
 
 	var currentNoteIdx:Int = 0;
 	var noteSpeed:Float;
@@ -100,7 +114,16 @@ class PlayState extends FlxState {
 		CacheUtil.realHitPoints = 0;
 		CacheUtil.totalHitPoints = 0;
 		CacheUtil.combo = 0;
+		CacheUtil.score = 0;
+		CacheUtil.health = Constants.MAX_HEALTH;
 		GeneralUtil.resetHitsArray();
+
+		firstNotes = [
+			0 => null,
+			1 => null,
+			2 => null,
+			3 => null
+		];
 
 		bgCamera = new FlxCamera();
 		gameplayCamera = new FlxCamera();
@@ -111,6 +134,8 @@ class PlayState extends FlxState {
 		FlxG.cameras.add(bgCamera);
 		FlxG.cameras.add(gameplayCamera);
 		FlxG.cameras.add(uiCamera);
+
+		health = Constants.MAX_HEALTH;
 
 		bgSprite = new FlxSprite();
 		bgSprite.loadGraphic(PathUtil.ofBackground(songId));
@@ -234,14 +259,63 @@ class PlayState extends FlxState {
 		comboPopup.cameras = [uiCamera];
 		add(comboPopup);
 
-		FlxG.sound.playMusic(PathUtil.ofSong(songName), false);
+		healthBarShadow = new FlxSprite();
+		healthBarShadow.makeGraphic((Constants.NOTE_LANE_WIDTH * 4) + (Std.int(Constants.NOTE_LANE_SPACING) * 5), Constants.STAT_BAR_HEIGHT, FlxColor.fromRGB(25, 25, 25));
+		healthBarShadow.updateHitbox();
+		healthBarShadow.setPosition(noteLanesGroup.members[0].x - (Constants.NOTE_LANE_SPACING) + 5, Constants.STAT_BAR_OFFSET + 65);
+		healthBarShadow.cameras = [uiCamera];
+		add(healthBarShadow);
+
+		healthBar = new FlxBar(
+			noteLanesGroup.members[0].x - (Constants.NOTE_LANE_SPACING), 
+			Constants.STAT_BAR_OFFSET + 60, 
+			LEFT_TO_RIGHT, 
+			(Constants.NOTE_LANE_WIDTH * 4) + (Std.int(Constants.NOTE_LANE_SPACING) * 5), 
+			Constants.STAT_BAR_HEIGHT, 
+			this, 
+			"health", 
+			0.0, 
+			Constants.MAX_HEALTH
+		);
+		healthBar.createFilledBar(FlxColor.RED, FlxColor.GREEN);
+		healthBar.cameras = [uiCamera];
+		add(healthBar);
+
+		newY += scoreText.height + 8;
+
+		timeBarShadow = new FlxSprite();
+		timeBarShadow.makeGraphic(Constants.STAT_BAR_WIDTH, Constants.STAT_BAR_HEIGHT, FlxColor.fromRGB(25, 25, 25));
+		timeBarShadow.updateHitbox();
+		timeBarShadow.setPosition(noteHitsBg.x + 13, newY + 5);
+		timeBarShadow.cameras = [uiCamera];
+		add(timeBarShadow);
+
+		timeBar = new FlxBar(
+			noteHitsBg.x + 8, 
+			newY, 
+			LEFT_TO_RIGHT, 
+			Constants.STAT_BAR_WIDTH, 
+			Constants.STAT_BAR_HEIGHT, 
+			FlxG.sound.music,
+			"time",
+			0.0,
+			(FlxG.sound.music.length / 2));
+		timeBar.createFilledBar(FlxColor.fromRGB(50, 50, 50), FlxColor.WHITE);
+		timeBar.cameras = [uiCamera];
+		add(timeBar);
+
+		FlxG.sound.playMusic(PathUtil.ofSong(songId), false);
 	}
 
 	override public function update(elapsed:Float) {
 		super.update(elapsed);
 
+		if (health <= 0) {
+			GeneralUtil.closeGame();
+		}
+
 		// Get the current music time in seconds
-		var musicTime:Float = FlxG.sound.music.time / 1000;
+		musicTime = FlxG.sound.music.time / 1000;
 
 		// Handle beat logic
 		var currentBeat:Int = Math.floor(FlxG.sound.music.time / beatDurationMS);
@@ -305,6 +379,8 @@ class PlayState extends FlxState {
 			ht.size = Std.int(FlxMath.lerp(Constants.HIT_WINDOW_TEXT_SIZE, ht.size, Math.exp(-elapsed * 3.125 * Constants.HIT_TYPE_TEXT_DECAY)));
 			idx++;
 		}
+
+		health = CacheUtil.health;
 
 		CacheUtil.accuracy = FlxMath.roundDecimal((CacheUtil.realHitPoints / CacheUtil.totalHitPoints) * 100, 2);
 		accuracyText.text = 'Accuracy: ${(!Math.isNaN(CacheUtil.accuracy)) ? CacheUtil.accuracy : 0}%';

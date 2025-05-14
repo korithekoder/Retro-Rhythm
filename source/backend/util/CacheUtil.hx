@@ -1,5 +1,7 @@
 package backend.util;
 
+import backend.data.Constants;
+
 /**
  * Class that holds general, temporary data for pretty much anything.
  * Examples of general temporary data can be things such as the last volume used.
@@ -11,6 +13,8 @@ final class CacheUtil {
 	public static var isWindowFocused:Bool = true;
 
     public static var canPlayMenuMusic:Bool = true;
+
+    public static var health:Float = Constants.MAX_HEALTH;
 
     public static var score:Int = 0;
 

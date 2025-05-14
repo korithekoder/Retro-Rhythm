@@ -49,9 +49,6 @@ class InitState extends FlxState {
 		Application.current.window.x = Std.int((Application.current.window.display.bounds.width - Application.current.window.width) / 2);
 		Application.current.window.y = Std.int((Application.current.window.display.bounds.height - Application.current.window.height) / 2);
 
-		// Set the game to fullscreen if option is ON
-		FlxG.fullscreen = ClientPrefs.options.fullscreen;
-
 		// Switch to the main menu state after everything has loaded
 		FlxG.switchState(() -> new MainMenuState());
 	}
@@ -71,7 +68,7 @@ class InitState extends FlxState {
 		FlxAssets.FONT_DEFAULT = PathUtil.ofFont('Born2bSportyFS');
 
 		// Set the outro shit for states
-		FlxTransitionableState.defaultTransIn = new TransitionData(TransitionType.FADE, FlxColor.BLACK);
+		FlxTransitionableState.defaultTransIn = new TransitionData(TransitionType.FADE, FlxColor.BLACK, Constants.TRANSITION_DURATION);
 		FlxTransitionableState.defaultTransOut = new TransitionData(TransitionType.FADE, FlxColor.BLACK, Constants.TRANSITION_DURATION);
 
 		// Disable the right-click context menu for HTML5
@@ -94,6 +91,8 @@ class InitState extends FlxState {
             if (Controls.getBinds().FULLSCREEN_JUST_PRESSED) {
 				FlxG.fullscreen = !FlxG.fullscreen;
 				ClientPrefs.setClientPreference('fullscreen', FlxG.fullscreen);
+				Application.current.window.x = Std.int((Application.current.window.display.bounds.width - Application.current.window.width) / 2);
+				Application.current.window.y = Std.int((Application.current.window.display.bounds.height - Application.current.window.height) / 2);
 			}
         });
 

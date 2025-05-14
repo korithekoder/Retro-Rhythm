@@ -157,6 +157,9 @@ final class ClientPrefs {
         else
             _options = _defaultOptions;
 
+        // Set the game to fullscreen if option is ON
+		FlxG.fullscreen = options.fullscreen;
+
         // Load controls
         if (controlsData.data.keyboard != null)
             _controlsKeyboard = controlsData.data.keyboard;

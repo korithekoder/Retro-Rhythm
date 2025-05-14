@@ -114,6 +114,12 @@ class Note extends FlxSprite {
         CacheUtil.totalHitPoints += Constants.HIT_WINDOW_ACCURACY_INCREMENTS[Constants.MARVELOUS_INDEX];
         CacheUtil.hits[idx]++;
         CacheUtil.score += Constants.HIT_WINDOW_SCORES[idx];
+        CacheUtil.health += Constants.HIT_WINDOW_HEALTH_INCREMENTS[idx];
+
+        if (CacheUtil.health > Constants.MAX_HEALTH) {
+            CacheUtil.health = Constants.MAX_HEALTH;
+        }
+        
         if (!resetCombo) {
             CacheUtil.combo++;
         } else {

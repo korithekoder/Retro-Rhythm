@@ -1,10 +1,11 @@
 package states.menus;
 
+import backend.data.Constants;
+import backend.Controls;
 import objects.ui.ClickableText;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import openfl.utils.Assets;
 import flixel.FlxSprite;
-import backend.data.Constants;
 import flixel.addons.transition.FlxTransitionableState;
 import flixel.FlxG;
 import backend.util.GeneralUtil;
@@ -51,8 +52,12 @@ class MainMenuState extends FlxTransitionableState {
     override function update(elapsed:Float) {
         super.update(elapsed);
 
-        if (FlxG.keys.justPressed.ANY) {
-            GeneralUtil.fadeIntoState(new PlayState('tight-spot'), Constants.TRANSITION_DURATION, false);
+        if (Controls.getBinds().UI_SELECT_JUST_PRESSED) {
+            GeneralUtil.fadeIntoState(new PlayState('the-arcade-24'), Constants.TRANSITION_DURATION, false);
+        }
+
+        if (Controls.getBinds().UI_BACK_JUST_PRESSED) {
+            GeneralUtil.closeGame();
         }
     }
 }

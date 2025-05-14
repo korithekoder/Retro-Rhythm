@@ -1,7 +1,5 @@
 package backend.data;
 
-import openfl.filters.GlowFilter;
-import flixel.FlxG;
 import flixel.input.keyboard.FlxKey;
 import flixel.util.FlxColor;
 
@@ -16,6 +14,10 @@ final class Constants {
         's_down'     => FlxKey.F,
         's_up'       => FlxKey.J,
         's_right'    => FlxKey.K,
+
+		// UI
+		'ui_select' => FlxKey.ENTER,
+		'ui_back' => FlxKey.ESCAPE,
 
         // Volume
         'v_up'       => FlxKey.PLUS,
@@ -121,13 +123,23 @@ final class Constants {
 
     public static final HIT_WINDOW_SCORES:Array<Int> = [800, 700, 525, 430, 200, 0, -200];
 
-    public static final HIT_WINDOW_ACCURACY_INCREMENTS:Array<Int> = [20, 18, 15, 12, 8, 3, 0];
+    public static final HIT_WINDOW_ACCURACY_INCREMENTS:Array<Int> = [20, 20, 18, 15, 10, 5, 0];
 
     public static final HIT_WINDOW_DISPLAY_COLORS:Array<FlxColor> = [FlxColor.BLUE, FlxColor.CYAN, FlxColor.LIME, FlxColor.GREEN, FlxColor.ORANGE, FlxColor.RED, FlxColor.GRAY];
 
-	public static final HIT_WINDOW_OFFSETS:Array<Float> = [50.0, 70.0, 85.0, 100.0, 130.0, 160.0];  // In the order of "Marvelous!!!", "Sick!!", "Great!", "Good", "Okay", "Yikes"
+	public static final HIT_WINDOW_OFFSETS:Array<Float> = [50.0, 70.0, 90.0, 110.0, 130.0, 160.0];  // In the order of "Marvelous!!!", "Sick!!", "Great!", "Good", "Okay", "Yikes"
+
+	public static final HIT_WINDOW_HEALTH_INCREMENTS:Array<Float> = [3.5, 2.0, 1.5, 0.5, 0.0, -5.0, -10.0];
 
     public static final NEW_HIT_NOTES_ARRAY:Array<Int> = [0, 0, 0, 0, 0, 0, 0];
+
+	public static final MAX_HEALTH:Float = 100;
+
+	public static final STAT_BAR_OFFSET:Float = 30;
+
+	public static final STAT_BAR_WIDTH:Int = 215;
+
+	public static final STAT_BAR_HEIGHT:Int = 24; 
 
     private function new() {}
 }
