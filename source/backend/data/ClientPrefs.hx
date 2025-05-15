@@ -33,6 +33,11 @@ enum ScrollType {
      * Which way the notes fall.
      */
     public var scrollType:ScrollType = DOWNSCROLL;
+
+    /**
+     * Should a note play a sound when it is hit?
+     */
+    public var noteHitSound:Bool = false;
 }
 
 /**

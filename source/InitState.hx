@@ -34,9 +34,6 @@ class InitState extends FlxState {
 		// Assign and configure flixel settings
 		configureFlixelSettings();
 
-		// Add the processes that always run in the background
-		addBackgroundProcesses();
-
 		// Add the event listeners
 		addEventListeners();
 
@@ -81,8 +78,6 @@ class InitState extends FlxState {
 		// Set the volume slider shit
 		// (thats my todo lol)
 	}
-
-	function addBackgroundProcesses():Void {}
 
 	function addEventListeners():Void {
 		#if desktop

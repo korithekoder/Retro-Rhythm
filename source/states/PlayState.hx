@@ -1,5 +1,7 @@
 package states;
 
+import substates.PauseSubState;
+import backend.Controls;
 import flixel.sound.FlxSound;
 import backend.data.ClientPrefs;
 import backend.data.Constants;
@@ -57,6 +59,7 @@ class PlayState extends FlxState {
 	var accuracyText:FlxText;
 	var comboText:FlxText;
 	var scoreText:FlxText;
+	var timeText:FlxText;
 
 	var songNameText:FlxText;
 
@@ -304,8 +307,20 @@ class PlayState extends FlxState {
 			new FlxSound().loadEmbedded(PathUtil.ofSong(songId)).length
 		);
 		timeBar.createFilledBar(FlxColor.fromRGB(50, 50, 50), FlxColor.WHITE);
+		timeBar.updateHitbox();
 		timeBar.cameras = [uiCamera];
 		add(timeBar);
+
+		timeText = new FlxText();
+		timeText.text = '';
+		timeText.size = 32;
+		timeText.color = FlxColor.WHITE;
+		timeText.setBorderStyle(FlxTextBorderStyle.OUTLINE, FlxColor.BLACK, 2.5);
+		timeText.updateHitbox();
+		timeText.x = (timeBar.x + (timeBar.width / 2)) - (timeText.width / 2) - 15;
+		timeText.y = (timeBar.y - (timeBar.height / 2)) - (timeText.height) + 8;
+		timeText.cameras = [uiCamera];
+		add(timeText);
 
 		FlxG.sound.music.loadEmbedded(PathUtil.ofSong(songId), false, false);
 		FlxG.sound.music.onComplete = () -> {
@@ -317,9 +332,9 @@ class PlayState extends FlxState {
 	override public function update(elapsed:Float) {
 		super.update(elapsed);
 
-		// if (health <= 0) {
-		// 	GeneralUtil.closeGame();
-		// }
+		if (health <= 0) {
+			GeneralUtil.fadeIntoState(new MainMenuState(), Constants.TRANSITION_DURATION, false);
+		}
 
 		// Get the current music time in seconds
 		musicTime = FlxG.sound.music.time / 1000;
@@ -376,6 +391,10 @@ class PlayState extends FlxState {
 			GeneralUtil.fadeIntoState(new PlayState(songId), Constants.TRANSITION_DURATION, false);
 		}
 
+		if (Controls.getBinds().UI_BACK_JUST_PRESSED) {
+			openSubState(new PauseSubState());
+		}
+
 		var idx:Int = 0;
 		for (ht in noteHitsGroup.members) {
 			ht.text = '${Constants.HIT_WINDOW_DISPLAY_TEXTS[idx]}: ${CacheUtil.hits[idx]}';
@@ -389,6 +408,10 @@ class PlayState extends FlxState {
 		accuracyText.text = 'Accuracy: ${(!Math.isNaN(CacheUtil.accuracy)) ? CacheUtil.accuracy : 0}%';
 		comboText.text = 'Combo: x${CacheUtil.combo}';
 		scoreText.text = 'Score: ${CacheUtil.score}';
+		var timeLeft:Float = FlxG.sound.music.length - FlxG.sound.music.time;
+		var minutesLeft:Int = Math.floor(timeLeft / 60000);
+		var secondsLeft:Int = Math.floor((timeLeft % 60000) / 1000);
+		timeText.text = '${Std.string(minutesLeft)} : ${secondsLeft < 10 ? '0' : ''}${Std.string(secondsLeft)}';
 
 		// Camera zoom logic
 		bgCamera.zoom = FlxMath.lerp(Constants.DEFAULT_CAM_ZOOM, bgCamera.zoom, Math.exp(-elapsed * 3.125 * Constants.CAMERA_ZOOM_DECAY));

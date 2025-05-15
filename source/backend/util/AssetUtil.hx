@@ -43,4 +43,16 @@ final class AssetUtil {
             Assets.loadSound(snd);
         }
     }
+
+    public static function loadBackgrounds():Array<String> {
+        var bgFiles = [];
+
+        for (id in Assets.list()) {
+            if (id.indexOf('assets/backgrounds/') == 0 && id.substring(id.length - 4) == '.png') {
+                bgFiles.push(id);
+            }
+        }
+
+        return bgFiles;
+    }
 }

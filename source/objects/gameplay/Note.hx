@@ -86,7 +86,9 @@ class Note extends FlxSprite {
                     _increaseAndEnlargeCombo(idx);
                     _createNoteHitPopup(idx);
                     fadeAndDestroy();
-                    FlxG.sound.play(PathUtil.ofSound('hitsound'), false);
+                    if (ClientPrefs.options.noteHitSound) {
+                        FlxG.sound.play(PathUtil.ofSound('hitsound'), false);
+                    }
                 }
             }
         }

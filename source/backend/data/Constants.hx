@@ -16,8 +16,12 @@ final class Constants {
         's_right'    => FlxKey.K,
 
 		// UI
-		'ui_select' => FlxKey.ENTER,
-		'ui_back' => FlxKey.ESCAPE,
+        'ui_left'    => FlxKey.LEFT,
+        'ui_down'    => FlxKey.DOWN,
+        'ui_up'      => FlxKey.UP,
+        'ui_right'   => FlxKey.RIGHT,
+		'ui_select'  => FlxKey.ENTER,
+		'ui_back'    => FlxKey.ESCAPE,
 
         // Volume
         'v_up'       => FlxKey.PLUS,
@@ -142,7 +146,11 @@ final class Constants {
 
 	public static final STAT_BAR_HEIGHT:Int = 24; 
 
+    public static final SONG_BANNER_SPACING:Int = 40;
+
     public static final SONG_BANNER_TEXT_SIZE:Int = 36;
+
+    public static final SONG_BANNER_SCROLL_DELAY:Float = 0.25;
 
     private function new() {}
 }
