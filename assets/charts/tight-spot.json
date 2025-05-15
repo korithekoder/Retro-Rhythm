@@ -702,9 +702,11 @@
   "metadata": { 
     "name": "Tight Spot", 
     "composer": "Basket", 
-    "charter": "Kori" 
+    "charter": "Kori",
+    "difficulty": 12,
+    "bannercolor": ["255", "255", "0"]
   },
-  "speed": 2.2,
+  "speed": 2.4,
   "bpm": 215,
   "camzoom": 2
 }

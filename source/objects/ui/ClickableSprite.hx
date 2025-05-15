@@ -83,6 +83,11 @@ class ClickableSprite extends FlxSprite {
 		}
 	}
 
+	override function updateHitbox() {
+		super.updateHitbox();
+		updateHoverBounds();
+	}
+
 	override function setPosition(x:Float = 0.0, y:Float = 0.0) {
 		super.setPosition(x, y);
 		updateHoverBounds();

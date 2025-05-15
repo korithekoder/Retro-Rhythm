@@ -1,5 +1,6 @@
 package states;
 
+import flixel.sound.FlxSound;
 import backend.data.ClientPrefs;
 import backend.data.Constants;
 import backend.util.AssetUtil;
@@ -72,6 +73,7 @@ class PlayState extends FlxState {
 	var lastBeat:Int = -1;
 
 	var musicTime:Float;
+	var musicTimeMS:Float;
 
 	var health:Float;
 
@@ -93,9 +95,9 @@ class PlayState extends FlxState {
 		this.songNotes = AssetUtil.getDynamicField(this.songData, 'notes', []);
 
 		this.songMetadata = AssetUtil.getDynamicField(this.songData, 'metadata', Constants.DEFAULT_METADATA);
+		this.songName = AssetUtil.getDynamicField(this.songMetadata, 'name', 'Unknown');
 		this.songComposer = AssetUtil.getDynamicField(this.songMetadata, 'composer', 'Unknown');
 		this.songCharter = AssetUtil.getDynamicField(this.songMetadata, 'charter', 'Unknown');
-		this.songName = AssetUtil.getDynamicField(this.songMetadata, 'name', 'Unknown');
 
 		this.songSpeed = AssetUtil.getDynamicField(this.songData, 'speed', 1);
 		this.songBPM = AssetUtil.getDynamicField(this.songData, 'songBPM', 60);
@@ -284,7 +286,7 @@ class PlayState extends FlxState {
 		newY += scoreText.height + 8;
 
 		timeBarShadow = new FlxSprite();
-		timeBarShadow.makeGraphic(Constants.STAT_BAR_WIDTH, Constants.STAT_BAR_HEIGHT, FlxColor.fromRGB(25, 25, 25));
+		timeBarShadow.makeGraphic(Constants.STAT_BAR_WIDTH - 3, Constants.STAT_BAR_HEIGHT - 5, FlxColor.fromRGB(25, 25, 25));
 		timeBarShadow.updateHitbox();
 		timeBarShadow.setPosition(noteHitsBg.x + 13, newY + 5);
 		timeBarShadow.cameras = [uiCamera];
@@ -296,26 +298,32 @@ class PlayState extends FlxState {
 			LEFT_TO_RIGHT, 
 			Constants.STAT_BAR_WIDTH, 
 			Constants.STAT_BAR_HEIGHT, 
-			FlxG.sound.music,
-			"time",
+			this,
+			"musicTimeMS",
 			0.0,
-			(FlxG.sound.music.length / 2));
+			new FlxSound().loadEmbedded(PathUtil.ofSong(songId)).length
+		);
 		timeBar.createFilledBar(FlxColor.fromRGB(50, 50, 50), FlxColor.WHITE);
 		timeBar.cameras = [uiCamera];
 		add(timeBar);
 
-		FlxG.sound.playMusic(PathUtil.ofSong(songId), false);
+		FlxG.sound.music.loadEmbedded(PathUtil.ofSong(songId), false, false);
+		FlxG.sound.music.onComplete = () -> {
+			GeneralUtil.fadeIntoState(new MainMenuState(), Constants.TRANSITION_DURATION, false);
+		};
+		FlxG.sound.music.play();
 	}
 
 	override public function update(elapsed:Float) {
 		super.update(elapsed);
 
-		if (health <= 0) {
-			GeneralUtil.closeGame();
-		}
+		// if (health <= 0) {
+		// 	GeneralUtil.closeGame();
+		// }
 
 		// Get the current music time in seconds
 		musicTime = FlxG.sound.music.time / 1000;
+		musicTimeMS = FlxG.sound.music.time;
 
 		// Handle beat logic
 		var currentBeat:Int = Math.floor(FlxG.sound.music.time / beatDurationMS);
@@ -366,11 +374,6 @@ class PlayState extends FlxState {
 
 		if (FlxG.keys.justPressed.R) {
 			GeneralUtil.fadeIntoState(new PlayState(songId), Constants.TRANSITION_DURATION, false);
-		}
-
-		if (FlxG.sound.music.time >= FlxG.sound.music.length) {
-			trace('song complete!');
-			GeneralUtil.fadeIntoState(new MainMenuState(), Constants.TRANSITION_DURATION, false);
 		}
 
 		var idx:Int = 0;

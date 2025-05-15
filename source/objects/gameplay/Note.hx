@@ -86,6 +86,7 @@ class Note extends FlxSprite {
                     _increaseAndEnlargeCombo(idx);
                     _createNoteHitPopup(idx);
                     fadeAndDestroy();
+                    FlxG.sound.play(PathUtil.ofSound('hitsound'), false);
                 }
             }
         }
@@ -118,6 +119,9 @@ class Note extends FlxSprite {
 
         if (CacheUtil.health > Constants.MAX_HEALTH) {
             CacheUtil.health = Constants.MAX_HEALTH;
+        }
+        if (CacheUtil.health < 0) {
+            CacheUtil.health = 0;
         }
         
         if (!resetCombo) {

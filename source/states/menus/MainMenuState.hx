@@ -27,7 +27,7 @@ class MainMenuState extends FlxTransitionableState {
         var bgFiles = [];
 
         for (id in Assets.list()) {
-            if (id.indexOf('assets/backgrounds/') == 0) {
+            if (id.indexOf('assets/backgrounds/') == 0 && id.substring(id.length - 4) == '.png') {
                 bgFiles.push(id);
             }
         }
@@ -53,7 +53,7 @@ class MainMenuState extends FlxTransitionableState {
         super.update(elapsed);
 
         if (Controls.getBinds().UI_SELECT_JUST_PRESSED) {
-            GeneralUtil.fadeIntoState(new PlayState('the-arcade-24'), Constants.TRANSITION_DURATION, false);
+            GeneralUtil.fadeIntoState(new SongSelectionState(), Constants.TRANSITION_DURATION, false);
         }
 
         if (Controls.getBinds().UI_BACK_JUST_PRESSED) {

@@ -68,9 +68,10 @@ final class Constants {
     ];
 
     public static final DEFAULT_METADATA:Dynamic = {
+        name: 'Unknown',
 		composer: 'Unknown',
 		charter: 'Unknown',
-		name: 'Unknown'
+        bannercolor: [0, 0, 0]
 	};
 
 	public static final TRANSITION_DURATION:Float = 0.2;
@@ -129,7 +130,7 @@ final class Constants {
 
 	public static final HIT_WINDOW_OFFSETS:Array<Float> = [50.0, 70.0, 90.0, 110.0, 130.0, 160.0];  // In the order of "Marvelous!!!", "Sick!!", "Great!", "Good", "Okay", "Yikes"
 
-	public static final HIT_WINDOW_HEALTH_INCREMENTS:Array<Float> = [3.5, 2.0, 1.5, 0.5, 0.0, -5.0, -10.0];
+	public static final HIT_WINDOW_HEALTH_INCREMENTS:Array<Float> = [3.5, 2.0, 1.5, 0.5, 0.0, -5.0, -6.5];
 
     public static final NEW_HIT_NOTES_ARRAY:Array<Int> = [0, 0, 0, 0, 0, 0, 0];
 
@@ -140,6 +141,8 @@ final class Constants {
 	public static final STAT_BAR_WIDTH:Int = 215;
 
 	public static final STAT_BAR_HEIGHT:Int = 24; 
+
+    public static final SONG_BANNER_TEXT_SIZE:Int = 36;
 
     private function new() {}
 }

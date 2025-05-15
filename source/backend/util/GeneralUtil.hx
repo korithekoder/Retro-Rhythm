@@ -83,6 +83,24 @@ final class GeneralUtil {
         return 5;
     }
 
+    public static function getDifficultyColor(d:Int):FlxColor {
+        if (d <= 5) {
+            return FlxColor.GREEN;
+        } else if (d <= 9) {
+            return FlxColor.YELLOW;
+        } else if (d <= 15) {
+            return FlxColor.RED;
+        } else if (d <= 20) {
+            return FlxColor.fromRGB(110, 0, 0);
+        } else {
+            return FlxColor.PURPLE;
+        }
+    }
+
+    public static function darkenFlxColor(color:FlxColor, shade:Int):FlxColor {
+        return FlxColor.fromRGB(color.red - shade, color.green - shade, color.blue - shade);
+    }
+
     /**
      * Tweens an `FlxSpriteGroup`'s members with ease.
      * 

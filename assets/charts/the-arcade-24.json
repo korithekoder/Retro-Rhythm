@@ -1298,11 +1298,13 @@
   ],
   "events": [],
   "metadata": {
+    "name": "The Arcade 24'",
     "composer": "Basket",
     "charter": "Kori",
-    "name": "The Arcade 24'"
+    "difficulty": 17,
+    "bannercolor": ["0", "0", "255"]
   },
   "speed": 2.2,
   "bpm": 175,
-  "camzoom": 4
+  "camzoom": 6
 }
