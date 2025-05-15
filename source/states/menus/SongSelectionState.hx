@@ -1,5 +1,8 @@
 package states.menus;
 
+import flixel.ui.FlxBar;
+import flixel.util.FlxColor;
+import objects.ui.ClickableSprite;
 import backend.util.PathUtil;
 import backend.util.GeneralUtil;
 import backend.Controls;
@@ -15,7 +18,16 @@ import flixel.addons.transition.FlxTransitionableState;
 class SongSelectionState extends FlxTransitionableState {
     
     var songBoard:FlxTypedGroup<SongBoardObject>;
+    var musicPlayerGroup:FlxTypedGroup<FlxSprite>;
     var bgSprite:FlxSprite;
+
+    var musicPlayerBg:FlxSprite;
+    var lastSongButton:ClickableSprite;
+    var nextSongButton:ClickableSprite;
+    var playButton:ClickableSprite;
+    var timeBar:FlxBar;
+
+    var isPaused:Bool = false;
 
     override function create() {
         super.create();
@@ -64,10 +76,81 @@ class SongSelectionState extends FlxTransitionableState {
                 newY += banner.getBannerHeight() + 20;
             }
         }
+
+        for (i in 0...songBoard.length) {
+            var banner:SongBoardObject = songBoard.members[i];
+            banner.bg.setPosition(FlxG.width / 2 - banner.bg.width / 2, banner.bg.y);
+        }
+
+        musicPlayerGroup = new FlxTypedGroup<FlxSprite>();
+        add(musicPlayerGroup);
+
+        musicPlayerBg = new FlxSprite();
+        musicPlayerBg.makeGraphic(FlxG.width, 150, FlxColor.BLACK);
+        musicPlayerBg.updateHitbox();
+        musicPlayerBg.alpha = 0.75;
+        musicPlayerBg.setPosition(0, 0);
+        musicPlayerGroup.add(musicPlayerBg);
+
+        playButton = new ClickableSprite();
+        playButton.loadGraphic(PathUtil.ofImage('pause-button'));
+        playButton.scale.set(3, 3);
+        playButton.updateHitbox();
+        playButton.setPosition((FlxG.width / 2) - (playButton.width / 2), (musicPlayerBg.height / 2) - (playButton.height / 2));
+        playButton.onClick = () -> {
+            FlxG.sound.play(PathUtil.ofSound('hitsound'));
+            isPaused = !isPaused;
+            if (isPaused) {
+                FlxG.sound.music.pause();
+            } else {
+                FlxG.sound.music.resume();
+            }
+        };
+        musicPlayerGroup.add(playButton);
+
+        lastSongButton = new ClickableSprite();
+        lastSongButton.loadGraphic(PathUtil.ofImage('skip-button'));
+        lastSongButton.scale.set(3, 3);
+        lastSongButton.flipX = true;
+        lastSongButton.updateHitbox();
+        lastSongButton.setPosition(Math.abs(playButton.x - lastSongButton.width) - 20, (musicPlayerBg.height / 2) - (lastSongButton.height / 2));
+        lastSongButton.onClick = () -> {
+            FlxG.sound.play(PathUtil.ofSound('hitsound'));
+            FlxG.sound.music.time = 0;
+        };
+        musicPlayerGroup.add(lastSongButton);
+
+        nextSongButton = new ClickableSprite();
+        nextSongButton.loadGraphic(PathUtil.ofImage('skip-button'));
+        nextSongButton.scale.set(3, 3);
+        nextSongButton.updateHitbox();
+        nextSongButton.setPosition(playButton.x + lastSongButton.width + 20, (musicPlayerBg.height / 2) - (lastSongButton.height / 2));
+        nextSongButton.onClick = () -> {
+            FlxG.sound.play(PathUtil.ofSound('hitsound'));
+            trace('do some fucking implementation here or some shit');
+        };
+        musicPlayerGroup.add(nextSongButton);
+
+        timeBar = new FlxBar(
+            20,
+            0,
+            FlxBarFillDirection.HORIZONTAL_INSIDE_OUT,
+            FlxG.width - 40,
+            5,
+            FlxG.sound.music,
+            'time',
+            0.0,
+            FlxG.sound.music.length
+        );
+        timeBar.y = (musicPlayerBg.y + musicPlayerBg.height) - (timeBar.height) - 3;
+        timeBar.createFilledBar(FlxColor.fromRGB(70, 70, 70), FlxColor.WHITE);
+        musicPlayerGroup.add(timeBar);
     }
 
     override function update(elapsed:Float) {
         super.update(elapsed);
+
+        playButton.loadGraphic(isPaused ? PathUtil.ofImage('play-button') : PathUtil.ofImage('pause-button'));
 
         if (Controls.getBinds().UI_BACK_JUST_PRESSED) {
             FlxG.sound.play(PathUtil.ofSound('menu-back'), false);
