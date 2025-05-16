@@ -219,10 +219,10 @@ class SongSelectionState extends FlxTransitionableState {
 
         if (Controls.getBinds().UI_UP_JUST_PRESSED) {
             // FlxG.sound.play(PathUtil.ofSound('menu-navigate'), false);
-            scrollSongs(1);
+            scrollSongs(-1);
         } else if (Controls.getBinds().UI_DOWN_JUST_PRESSED) {
             // FlxG.sound.play(PathUtil.ofSound('menu-navigate'), false);
-            scrollSongs(-1);
+            scrollSongs(1);
         }
 
         if (Controls.getBinds().UI_BACK_JUST_PRESSED) {

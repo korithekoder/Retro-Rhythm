@@ -121,6 +121,7 @@ class PlayState extends FlxState {
 		CacheUtil.combo = 0;
 		CacheUtil.score = 0;
 		CacheUtil.health = Constants.MAX_HEALTH;
+		CacheUtil.currentSongId = songId;
 		GeneralUtil.resetHitsArray();
 
 		firstNotes = [
@@ -317,8 +318,8 @@ class PlayState extends FlxState {
 		timeText.color = FlxColor.WHITE;
 		timeText.setBorderStyle(FlxTextBorderStyle.OUTLINE, FlxColor.BLACK, 2.5);
 		timeText.updateHitbox();
-		timeText.x = (timeBar.x + (timeBar.width / 2)) - (timeText.width / 2) - 15;
-		timeText.y = (timeBar.y - (timeBar.height / 2)) - (timeText.height) + 8;
+		timeText.x = (timeBar.x + (timeBar.width / 2)) - (timeText.width / 2) - 22;
+		timeText.y = (timeBar.y - (timeBar.height / 2)) - (timeText.height) + 13;
 		timeText.cameras = [uiCamera];
 		add(timeText);
 

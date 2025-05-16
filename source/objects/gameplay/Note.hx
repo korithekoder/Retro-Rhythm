@@ -78,13 +78,24 @@ class Note extends FlxSprite {
                 }
             }
 
-            if (GeneralUtil.getJustPressedStrumBind(_lane) && this.exists) {
-                var firstNote:Note = PlayState.firstNotes.get(lane);
-                var canHit:Bool = (firstNote != null) ? (firstNote.alive) ? firstNote.id == this.id : false : true;
-                if (canHit && strumlineDistance <= Constants.HIT_WINDOW_OFFSETS[Constants.YIKES_INDEX]) {
-                    var idx:Int = GeneralUtil.getHitTypeIndexByDistance(strumlineDistance);
-                    _increaseAndEnlargeCombo(idx);
-                    _createNoteHitPopup(idx);
+            if (!CacheUtil.botModeEnabled) {
+                if (GeneralUtil.getJustPressedStrumBind(_lane) && this.exists) {
+                    var firstNote:Note = PlayState.firstNotes.get(lane);
+                    var canHit:Bool = (firstNote != null) ? (firstNote.alive) ? firstNote.id == this.id : false : true;
+                    if (canHit && strumlineDistance <= Constants.HIT_WINDOW_OFFSETS[Constants.YIKES_INDEX]) {
+                        var idx:Int = GeneralUtil.getHitTypeIndexByDistance(strumlineDistance);
+                        _increaseAndEnlargeCombo(idx);
+                        _createNoteHitPopup(idx);
+                        fadeAndDestroy();
+                        if (ClientPrefs.options.noteHitSound) {
+                            FlxG.sound.play(PathUtil.ofSound('hitsound'), false);
+                        }
+                    }
+                }
+            } else {
+                if (strumlineDistance <= Constants.HIT_WINDOW_OFFSETS[Constants.MARVELOUS_INDEX]) {
+                    _increaseAndEnlargeCombo(Constants.MARVELOUS_INDEX, false, false);
+                    _createNoteHitPopup(Constants.MARVELOUS_INDEX);
                     fadeAndDestroy();
                     if (ClientPrefs.options.noteHitSound) {
                         FlxG.sound.play(PathUtil.ofSound('hitsound'), false);
@@ -104,20 +115,22 @@ class Note extends FlxSprite {
     }
 
     public function missAndDestroy():Void {
-        _increaseAndEnlargeCombo(Constants.MISS_INDEX, true);
+        _increaseAndEnlargeCombo(Constants.MISS_INDEX, true, true);
         _createNoteHitPopup(Constants.MISS_INDEX);
         this.destroy();
         PlayState.firstNotes.get(lane).alive = false;
         FlxG.sound.play(PathUtil.ofSound('miss'), false);
     }
 
-    private function _increaseAndEnlargeCombo(idx:Int, resetCombo:Bool = false) {
-        PlayState.noteHitsGroup.members[idx].size = Constants.HIT_WINDOW_TEXT_SIZE + 8;
-        CacheUtil.realHitPoints += Constants.HIT_WINDOW_ACCURACY_INCREMENTS[idx];
-        CacheUtil.totalHitPoints += Constants.HIT_WINDOW_ACCURACY_INCREMENTS[Constants.MARVELOUS_INDEX];
-        CacheUtil.hits[idx]++;
-        CacheUtil.score += Constants.HIT_WINDOW_SCORES[idx];
-        CacheUtil.health += Constants.HIT_WINDOW_HEALTH_INCREMENTS[idx];
+    private function _increaseAndEnlargeCombo(idx:Int, increaseCombo:Bool = true, resetCombo:Bool = false) {
+        if (increaseCombo) {
+            PlayState.noteHitsGroup.members[idx].size = Constants.HIT_WINDOW_TEXT_SIZE + 8;
+            CacheUtil.realHitPoints += Constants.HIT_WINDOW_ACCURACY_INCREMENTS[idx];
+            CacheUtil.totalHitPoints += Constants.HIT_WINDOW_ACCURACY_INCREMENTS[Constants.MARVELOUS_INDEX];
+            CacheUtil.hits[idx]++;
+            CacheUtil.score += Constants.HIT_WINDOW_SCORES[idx];
+            CacheUtil.health += Constants.HIT_WINDOW_HEALTH_INCREMENTS[idx];
+        }
 
         if (CacheUtil.health > Constants.MAX_HEALTH) {
             CacheUtil.health = Constants.MAX_HEALTH;

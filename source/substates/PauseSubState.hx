@@ -1,9 +1,11 @@
 package substates;
 
+import backend.util.CacheUtil;
+import states.PlayState;
 import flixel.text.FlxText;
 import backend.util.PathUtil;
 import backend.data.Constants;
-import states.menus.MainMenuState;
+import states.menus.SongSelectionState;
 import backend.util.GeneralUtil;
 import flixel.util.FlxTimer;
 import flixel.text.FlxText.FlxTextBorderStyle;
@@ -22,7 +24,7 @@ class PauseSubState extends FlxSubState {
     var bg:FlxSprite;
 
     var buttonsGroup:FlxTypedGroup<ClickableText>;
-    var buttonIds:Array<String> = ['Resume', 'Exit'];
+    var buttonIds:Array<String> = ['Resume', 'Enable Bot Play', 'Exit'];
     var buttonClickFunctions:Map<String, Void->Void>;
 
     var pausedText:FlxText;
@@ -48,16 +50,21 @@ class PauseSubState extends FlxSubState {
         add(pausedText);
 
         FlxTween.tween(bg, { alpha: 0.35 }, 0.5, { ease: FlxEase.quartIn });
-        FlxTween.tween(pausedText, { alpha: 1}, 0.5, {ease: FlxEase.quartIn});
+        FlxTween.tween(pausedText, { alpha: 1}, 0.5, {ease: FlxEase.quartIn });
 
         buttonClickFunctions = [
             'Resume' => () -> {
                 FlxG.sound.music.resume();
                 close();
             },
+            'Enable Bot Play' => () -> {
+                FlxG.sound.music.stop();
+                CacheUtil.botModeEnabled = !CacheUtil.botModeEnabled;
+                GeneralUtil.fadeIntoState(new PlayState(CacheUtil.currentSongId), Constants.TRANSITION_DURATION, false);
+            },
             'Exit' => () -> {
                 FlxG.sound.music.stop();
-                GeneralUtil.fadeIntoState(new MainMenuState(), Constants.TRANSITION_DURATION, false);
+                GeneralUtil.fadeIntoState(new SongSelectionState(), Constants.TRANSITION_DURATION, false);
             }
         ];
 
@@ -68,7 +75,7 @@ class PauseSubState extends FlxSubState {
         var newTweenTime:Float = 0.6;
         for (btn in buttonIds) {
             var b:ClickableText = new ClickableText();
-            b.text = btn;
+            b.text = (btn == 'Enable Bot Play' && CacheUtil.botModeEnabled) ? 'Disable Bot Mode' : btn ;
             b.size = 100;
             b.color = FlxColor.WHITE;
             b.setBorderStyle(FlxTextBorderStyle.OUTLINE, FlxColor.BLACK, 3);

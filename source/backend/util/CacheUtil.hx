@@ -28,5 +28,9 @@ final class CacheUtil {
 
     public static var realHitPoints:Int = 0;  // Used for accuracy (this is basically if all of the notes were marvelous notes added together)
 
+    public static var botModeEnabled:Bool = false;
+
+    public static var currentSongId:String = '';
+
     private function new() {}
 }
