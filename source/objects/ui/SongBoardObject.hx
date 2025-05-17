@@ -68,6 +68,7 @@ class SongBoardObject extends FlxTypedGroup<FlxSprite> {
         }
         bg.onClick = () -> {
             if (isFocusedOn) {
+                FlxG.sound.play(PathUtil.ofSound('select'));
                 GeneralUtil.fadeIntoState(new PlayState(id), Constants.TRANSITION_DURATION, false);
             }
         }

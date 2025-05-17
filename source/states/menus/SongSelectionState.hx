@@ -1,5 +1,10 @@
 package states.menus;
 
+import flixel.math.FlxMath;
+import flixel.FlxCamera;
+import objects.states.MusicBeatState;
+import backend.util.CacheUtil;
+import backend.data.ClientPrefs;
 import flixel.util.FlxTimer;
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
@@ -19,7 +24,10 @@ import backend.util.AssetUtil;
 import openfl.Assets;
 import flixel.addons.transition.FlxTransitionableState;
 
-class SongSelectionState extends FlxTransitionableState {
+class SongSelectionState extends MusicBeatState {
+
+    var bgCamera:FlxCamera;
+    var uiCamera:FlxCamera;
     
     var songBoard:FlxTypedGroup<SongBoardObject>;
     var musicPlayerGroup:FlxTypedGroup<FlxSprite>;
@@ -45,14 +53,27 @@ class SongSelectionState extends FlxTransitionableState {
     override function create() {
         super.create();
 
+        FlxG.fullscreen = ClientPrefs.getClientPreference('fullscreen');
+        CacheUtil.canPlayMenuMusic = true;
+
+        FlxG.cameras.reset();
+        bgCamera = new FlxCamera();
+        uiCamera = new FlxCamera();
+        uiCamera.bgColor.alpha = 0;
+        FlxG.cameras.add(bgCamera);
+        FlxG.cameras.add(uiCamera);
+
         bgSprite = new FlxSprite();
+        bgSprite.cameras = [bgCamera];
         add(bgSprite);
 
         bgSpriteOverlay = new FlxSprite();
         bgSpriteOverlay.alpha = 0;
+        bgSpriteOverlay.cameras = [bgCamera];
         add(bgSpriteOverlay);
 
         songBoard = new FlxTypedGroup<SongBoardObject>();
+        songBoard.cameras = [uiCamera];
         add(songBoard);
 
         var toAdd:Array<SongBoardObject> = [];
@@ -98,6 +119,7 @@ class SongSelectionState extends FlxTransitionableState {
         }
 
         musicPlayerGroup = new FlxTypedGroup<FlxSprite>();
+        musicPlayerGroup.cameras = [uiCamera];
         add(musicPlayerGroup);
 
         musicPlayerBg = new FlxSprite();
@@ -205,10 +227,13 @@ class SongSelectionState extends FlxTransitionableState {
         var firstMember:SongBoardObject = songBoard.members[0];
         firstMember.isFocusedOn = true;
         setSongInfo(firstMember);
+
         bgSprite.loadGraphic(PathUtil.ofBackground(firstMember.id), false);
         bgSprite.setGraphicSize(FlxG.width, FlxG.height);
         bgSprite.updateHitbox();
         bgSprite.setPosition(0, 0);
+
+        setSongData(firstMember);
         FlxG.sound.playMusic(PathUtil.ofSong(songBoard.members[0].id));
     }
 
@@ -217,12 +242,20 @@ class SongSelectionState extends FlxTransitionableState {
 
         playButton.loadGraphic(isPaused ? PathUtil.ofImage('play-button') : PathUtil.ofImage('pause-button'));
 
+        bgCamera.zoom = FlxMath.lerp(Constants.DEFAULT_CAM_ZOOM, bgCamera.zoom, Math.exp(-elapsed * 3.125 * Constants.CAMERA_ZOOM_DECAY));
+
         if (Controls.getBinds().UI_UP_JUST_PRESSED) {
-            // FlxG.sound.play(PathUtil.ofSound('menu-navigate'), false);
             scrollSongs(-1);
         } else if (Controls.getBinds().UI_DOWN_JUST_PRESSED) {
-            // FlxG.sound.play(PathUtil.ofSound('menu-navigate'), false);
             scrollSongs(1);
+        }
+
+        if (FlxG.mouse.wheel != 0) {
+            if (FlxG.mouse.wheel > 0) {
+                scrollSongs(-1);
+            } else {
+                scrollSongs(1);
+            }
         }
 
         if (Controls.getBinds().UI_BACK_JUST_PRESSED) {
@@ -253,7 +286,7 @@ class SongSelectionState extends FlxTransitionableState {
             newY += (bnr.bg.height + Constants.SONG_BANNER_SPACING) * dir * -1;
             FlxTween.tween(
                 bnr.bg, 
-                { 
+                {
                     y: newY
                 },
                 Constants.SONG_BANNER_SCROLL_DELAY,
@@ -263,6 +296,7 @@ class SongSelectionState extends FlxTransitionableState {
                         bnr.bg.updateHoverBounds();
                     },
                     onComplete: (_) -> {
+                        setSongData(banner);
                         FlxG.sound.playMusic(PathUtil.ofSong(banner.id));
                     }
                 }
@@ -288,6 +322,8 @@ class SongSelectionState extends FlxTransitionableState {
         new FlxTimer().start(Constants.SONG_BANNER_SCROLL_DELAY, (t) -> {
             canScroll = true;
         });
+
+        FlxG.sound.play(PathUtil.ofSound('hitsound'));
     }
 
     function setSongInfo(banner:SongBoardObject) {
@@ -297,5 +333,20 @@ class SongSelectionState extends FlxTransitionableState {
         songDifficultyText.setBorderStyle(FlxTextBorderStyle.SHADOW, GeneralUtil.darkenFlxColor(GeneralUtil.getDifficultyColor(banner.difficulty), 70), 3);
         songBPMText.text = 'BPM: ${banner.bpm}';
         songSpeedText.text = 'Speed: ${banner.speed}';
+    }
+
+    function setSongData(banner:SongBoardObject):Void {
+        var songData:Dynamic = AssetUtil.getJsonData(PathUtil.ofChart(banner.id));
+        beatCounter = 0;
+        lastBeat = -1;
+        songBPM = AssetUtil.getDynamicField(songData, 'bpm', 60);
+        songCamZoomIntensity = AssetUtil.getDynamicField(songData, 'camzoom', 1.0);
+        beatsBeforeHit = AssetUtil.getDynamicField(songData, 'beatsbeforehit', 4);
+        beatDuration = 60 / songBPM;
+        beatDurationMS = 60000 / songBPM;
+    }
+
+    function beatHit() {
+        bgCamera.zoom += 0.015 * songCamZoomIntensity;
     }
 }

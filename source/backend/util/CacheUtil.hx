@@ -32,5 +32,7 @@ final class CacheUtil {
 
     public static var currentSongId:String = '';
 
+    public static var hasSeenIntro:Bool = false;
+
     private function new() {}
 }

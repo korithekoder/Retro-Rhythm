@@ -1,16 +1,16 @@
 package backend.util;
 
-import flixel.group.FlxGroup;
-import objects.gameplay.NoteLane;
 import backend.data.Constants;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.FlxState;
 import flixel.group.FlxGroup.FlxTypedGroup;
+import flixel.group.FlxGroup;
 import flixel.sound.FlxSound;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
+import objects.gameplay.NoteLane;
 #if DISCORD_ALLOWED
 import backend.api.DiscordClient;
 #end
@@ -45,9 +45,9 @@ final class GeneralUtil {
     /**
      * Play menu music ***if*** it hasn't already started.
      */
-    public static function playMenuMusic(volume:Float = 1):Void {
+	public static function playMenuMusic(trackName:String = '', volume:Float = 1):Void {
         if (CacheUtil.canPlayMenuMusic) {
-            FlxG.sound.playMusic(PathUtil.ofMusic(Constants.MENU_MUSIC_NAME), volume, true);
+			FlxG.sound.playMusic(PathUtil.ofMusic(!(trackName == '') ? trackName : Constants.DEFAULT_MENU_MUSIC_NAME), volume, true);
             CacheUtil.canPlayMenuMusic = false;
         }
     }

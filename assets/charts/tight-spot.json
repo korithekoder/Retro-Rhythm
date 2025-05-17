@@ -706,7 +706,8 @@
     "difficulty": 12,
     "bannercolor": ["255", "255", "0"]
   },
-  "speed": 2.4,
+  "speed": 0.4,
   "bpm": 215,
-  "camzoom": 2
+  "camzoom": 3,
+  "beatsbeforehit": 4
 }

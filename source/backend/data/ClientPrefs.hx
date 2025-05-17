@@ -38,6 +38,21 @@ enum ScrollType {
      * Should a note play a sound when it is hit?
      */
     public var noteHitSound:Bool = false;
+
+    /**
+     * Should the note lanes flash when their set bind is pressed?
+     */
+    public var noteLaneFlash:Bool = true;
+
+    /**
+     * How loud the hit sound volume is.
+     */
+    public var hitSoundVolume:Float = 1.0;
+
+    /**
+     * Should the game show a splash effect when a note is hit?
+     */
+    public var showHitSplash:Bool = true;
 }
 
 /**
@@ -110,8 +125,8 @@ final class ClientPrefs {
      * @return           The value of the preference. If it does not exist, then
      *                   `null` is returned instead.
      */
-    public static inline function getClientPreference(preference:String, defaultValue:Any = null):Any {
-        return (Reflect.hasField(_options, preference)) ? Reflect.field(_options, preference) : defaultValue;
+    public static inline function getClientPreference(preference:String):Any {
+        return Reflect.field(_options, preference);
     }
 
     /**
@@ -172,12 +187,12 @@ final class ClientPrefs {
             _controlsKeyboard = Constants.DEFAULT_CONTROLS_KEYBOARD;
 
         // Load any options that may not be present
-        for (key in Reflect.fields(_defaultOptions)) {
-            if (!Reflect.hasField(_options, key)) {
-                Reflect.setField(_options, key, Reflect.field(_defaultOptions, key));
-                FlxG.log.add('Added missing option "' + key + '" with default value.');
-            }
-        }
+        // for (key in Reflect.fields(_defaultOptions)) {
+        //     if (!Reflect.hasField(_options, key)) {
+        //         Reflect.setField(_options, key, Reflect.field(_defaultOptions, key));
+        //         FlxG.log.add('Added missing option "' + key + '" with default value.');
+        //     }
+        // }
 
         // Set the volume keys
         FlxG.sound.volumeUpKeys = [controlsKeyboard.get('v_up')];

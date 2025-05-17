@@ -1,19 +1,19 @@
 package objects.gameplay;
 
-import flixel.text.FlxText.FlxTextBorderStyle;
-import states.PlayState;
-import flixel.util.FlxColor;
-import flixel.tweens.FlxEase;
-import flixel.util.FlxSpriteUtil;
-import flixel.tweens.FlxTween;
-import backend.data.Constants;
-import backend.util.PathUtil;
-import backend.util.CacheUtil;
-import backend.data.ClientPrefs;
-import backend.util.GeneralUtil;
-import flixel.FlxG;
 import backend.data.ClientPrefs.ScrollType;
+import backend.data.ClientPrefs;
+import backend.data.Constants;
+import backend.util.CacheUtil;
+import backend.util.GeneralUtil;
+import backend.util.PathUtil;
+import flixel.FlxG;
 import flixel.FlxSprite;
+import flixel.text.FlxText.FlxTextBorderStyle;
+import flixel.tweens.FlxEase;
+import flixel.tweens.FlxTween;
+import flixel.util.FlxColor;
+import flixel.util.FlxSpriteUtil;
+import states.PlayState;
 
 class Note extends FlxSprite {
 
@@ -53,7 +53,7 @@ class Note extends FlxSprite {
         this._speed = speed;
         this._data = data;
         this.loadGraphic(PathUtil.ofImage('note-$lane'));
-        this.setGraphicSize(100, 100);
+		this.setGraphicSize(Constants.NOTE_LANE_WIDTH, Constants.NOTE_SIZE_HEIGHT);
         this.updateHitbox();
         this.setPosition(laneX, (scrollType == DOWNSCROLL) ? -this.height : FlxG.height);
     }
@@ -85,20 +85,22 @@ class Note extends FlxSprite {
                     if (canHit && strumlineDistance <= Constants.HIT_WINDOW_OFFSETS[Constants.YIKES_INDEX]) {
                         var idx:Int = GeneralUtil.getHitTypeIndexByDistance(strumlineDistance);
                         _increaseAndEnlargeCombo(idx);
-                        _createNoteHitPopup(idx);
+						if (ClientPrefs.options.showHitSplash)
+							_createNoteHitPopup(idx);
                         fadeAndDestroy();
                         if (ClientPrefs.options.noteHitSound) {
-                            FlxG.sound.play(PathUtil.ofSound('hitsound'), false);
+							FlxG.sound.play(PathUtil.ofSound('hitsound'), ClientPrefs.options.hitSoundVolume, false);
                         }
                     }
                 }
             } else {
                 if (strumlineDistance <= Constants.HIT_WINDOW_OFFSETS[Constants.MARVELOUS_INDEX]) {
                     _increaseAndEnlargeCombo(Constants.MARVELOUS_INDEX, false, false);
-                    _createNoteHitPopup(Constants.MARVELOUS_INDEX);
+					if (ClientPrefs.options.showHitSplash)
+						_createNoteHitPopup(Constants.MARVELOUS_INDEX);
                     fadeAndDestroy();
                     if (ClientPrefs.options.noteHitSound) {
-                        FlxG.sound.play(PathUtil.ofSound('hitsound'), false);
+						FlxG.sound.play(PathUtil.ofSound('hitsound'), ClientPrefs.options.hitSoundVolume, false);
                     }
                 }
             }
@@ -116,7 +118,8 @@ class Note extends FlxSprite {
 
     public function missAndDestroy():Void {
         _increaseAndEnlargeCombo(Constants.MISS_INDEX, true, true);
-        _createNoteHitPopup(Constants.MISS_INDEX);
+		if (ClientPrefs.options.showHitSplash)
+			_createNoteHitPopup(Constants.MISS_INDEX);
         this.destroy();
         PlayState.firstNotes.get(lane).alive = false;
         FlxG.sound.play(PathUtil.ofSound('miss'), false);
@@ -129,8 +132,9 @@ class Note extends FlxSprite {
             CacheUtil.totalHitPoints += Constants.HIT_WINDOW_ACCURACY_INCREMENTS[Constants.MARVELOUS_INDEX];
             CacheUtil.hits[idx]++;
             CacheUtil.score += Constants.HIT_WINDOW_SCORES[idx];
-            CacheUtil.health += Constants.HIT_WINDOW_HEALTH_INCREMENTS[idx];
-        }
+		}
+
+		CacheUtil.health += Constants.HIT_WINDOW_HEALTH_INCREMENTS[idx];
 
         if (CacheUtil.health > Constants.MAX_HEALTH) {
             CacheUtil.health = Constants.MAX_HEALTH;

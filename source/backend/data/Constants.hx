@@ -80,7 +80,7 @@ final class Constants {
 
 	public static final TRANSITION_DURATION:Float = 0.2;
 
-    public static final MENU_MUSIC_NAME:String = 'Bit Destroyer';
+	public static final DEFAULT_MENU_MUSIC_NAME:String = 'Bit Destroyer';
 
     public static final CAMERA_ZOOM_DECAY:Float = 1;
 
@@ -102,7 +102,7 @@ final class Constants {
 
     public static final STRUMLINE_Y_OFFSET:Int = 120;
 
-    public static final NOTE_SIZE:Int = 100;
+	public static final NOTE_SIZE_HEIGHT:Int = 100;
 
 	public static final NOTE_LANE_WIDTH:Int = 100;
 
@@ -150,7 +150,9 @@ final class Constants {
 
     public static final SONG_BANNER_TEXT_SIZE:Int = 36;
 
-    public static final SONG_BANNER_SCROLL_DELAY:Float = 0.25;
+	public static final SONG_BANNER_SCROLL_DELAY:Float = 0.15;
+
+	public static final OPTION_DISPLAY_TEXT_SIZE:Int = 64;
 
     private function new() {}
 }

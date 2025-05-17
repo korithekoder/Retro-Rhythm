@@ -1,23 +1,24 @@
 package substates;
 
-import backend.util.CacheUtil;
-import states.PlayState;
-import flixel.text.FlxText;
-import backend.util.PathUtil;
-import backend.data.Constants;
-import states.menus.SongSelectionState;
-import backend.util.GeneralUtil;
-import flixel.util.FlxTimer;
-import flixel.text.FlxText.FlxTextBorderStyle;
-import objects.ui.ClickableText;
-import flixel.group.FlxGroup.FlxTypedGroup;
+import flixel.FlxCamera;
 import backend.Controls;
-import flixel.tweens.FlxEase;
-import flixel.tweens.FlxTween;
-import flixel.util.FlxColor;
+import backend.data.Constants;
+import backend.util.CacheUtil;
+import backend.util.GeneralUtil;
+import backend.util.PathUtil;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.FlxSubState;
+import flixel.group.FlxGroup.FlxTypedGroup;
+import flixel.text.FlxText.FlxTextBorderStyle;
+import flixel.text.FlxText;
+import flixel.tweens.FlxEase;
+import flixel.tweens.FlxTween;
+import flixel.util.FlxColor;
+import flixel.util.FlxTimer;
+import objects.ui.ClickableText;
+import states.PlayState;
+import states.menus.SongSelectionState;
 
 class PauseSubState extends FlxSubState {
     
@@ -26,11 +27,19 @@ class PauseSubState extends FlxSubState {
     var buttonsGroup:FlxTypedGroup<ClickableText>;
     var buttonIds:Array<String> = ['Resume', 'Enable Bot Play', 'Exit'];
     var buttonClickFunctions:Map<String, Void->Void>;
+	var buttonWasClicked:Bool = false;
 
     var pausedText:FlxText;
 
     override function create() {
         super.create();
+
+		var pauseCam = new FlxCamera();
+		pauseCam.bgColor = FlxColor.TRANSPARENT;
+		pauseCam.zoom = 1; // No zoom
+		FlxG.cameras.add(pauseCam, false); // Add as overlay, not the main camera
+
+		cameras = [pauseCam];
 
         FlxG.sound.music.pause();
 
@@ -49,20 +58,31 @@ class PauseSubState extends FlxSubState {
         pausedText.setPosition(80, 90);
         add(pausedText);
 
-        FlxTween.tween(bg, { alpha: 0.35 }, 0.5, { ease: FlxEase.quartIn });
-        FlxTween.tween(pausedText, { alpha: 1}, 0.5, {ease: FlxEase.quartIn });
+        FlxTween.tween(bg, { alpha: 0.6 }, 0.5, { ease: FlxEase.quartIn });
+        FlxTween.tween(pausedText, { alpha: 1 }, 0.5, {ease: FlxEase.quartIn });
 
         buttonClickFunctions = [
             'Resume' => () -> {
+				if (buttonWasClicked)
+					return;
+				buttonWasClicked = true;
                 FlxG.sound.music.resume();
                 close();
             },
             'Enable Bot Play' => () -> {
+				if (buttonWasClicked)
+					return;
+				buttonWasClicked = true;
+				FlxG.sound.play(PathUtil.ofSound('select'));
                 FlxG.sound.music.stop();
                 CacheUtil.botModeEnabled = !CacheUtil.botModeEnabled;
                 GeneralUtil.fadeIntoState(new PlayState(CacheUtil.currentSongId), Constants.TRANSITION_DURATION, false);
             },
             'Exit' => () -> {
+				if (buttonWasClicked)
+					return;
+				buttonWasClicked = true;
+				FlxG.sound.play(PathUtil.ofSound('select'));
                 FlxG.sound.music.stop();
                 GeneralUtil.fadeIntoState(new SongSelectionState(), Constants.TRANSITION_DURATION, false);
             }

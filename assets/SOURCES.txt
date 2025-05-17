@@ -1,0 +1,2 @@
+URL FOR USING BITCRUSHER EFFECT ON SOUNDS
+https://voicechanger.io/voicemaker/#!/{%22effects%22:[{%22name%22:%22bitcrusher%22,%22params%22:{%22bits%22:6,%22normfreq%22:0.15,%22bufferSize%22:256}}],%22version%22:1}

@@ -1,5 +1,9 @@
 package states.menus;
 
+import backend.util.CacheUtil;
+import flixel.FlxCamera;
+import flixel.math.FlxMath;
+import objects.states.MusicBeatState;
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import backend.util.PathUtil;
@@ -16,7 +20,10 @@ import backend.util.GeneralUtil;
 import flixel.util.FlxColor;
 import flixel.text.FlxText;
 
-class MainMenuState extends FlxTransitionableState {
+class MainMenuState extends MusicBeatState {
+
+    var bgCamera:FlxCamera;
+    var uiCamera:FlxCamera;
 
     var menuText:FlxText;
     var bgSprite:FlxSprite;
@@ -31,6 +38,19 @@ class MainMenuState extends FlxTransitionableState {
         GeneralUtil.playMenuMusic();
         FlxG.sound.music.resume();
 
+        bgCamera = new FlxCamera();
+        FlxG.cameras.add(bgCamera);
+
+        uiCamera = new FlxCamera();
+        uiCamera.bgColor.alpha = 0;
+        FlxG.cameras.add(uiCamera);
+
+        songBPM = 190;
+        songCamZoomIntensity = 1.5;
+        beatDuration = 60 / songBPM;
+        beatDurationMS = 60000 / songBPM;
+        beatsBeforeHit = 1;
+
         var bgFiles = AssetUtil.loadBackgrounds();
 
         bgSprite = new FlxSprite();
@@ -38,6 +58,7 @@ class MainMenuState extends FlxTransitionableState {
         bgSprite.setGraphicSize(FlxG.width, FlxG.height);
         bgSprite.updateHitbox();
         bgSprite.setPosition(0, 0);
+        bgSprite.cameras = [bgCamera];
         add(bgSprite);
 
         buttonBgSprite = new FlxSprite();
@@ -45,6 +66,7 @@ class MainMenuState extends FlxTransitionableState {
         buttonBgSprite.updateHitbox();
         buttonBgSprite.setPosition(FlxG.width - 400, 0);
         buttonBgSprite.alpha = 0.65;
+        buttonBgSprite.cameras = [uiCamera];
         add(buttonBgSprite);
 
         buttons = new FlxTypedGroup<ClickableText>();
@@ -52,9 +74,11 @@ class MainMenuState extends FlxTransitionableState {
 
         var buttonClickFunctions:Map<String, Void->Void> = [
             'Play' => () -> {
+                FlxG.sound.play(PathUtil.ofSound('select'));
                 GeneralUtil.fadeIntoState(new SongSelectionState(), Constants.TRANSITION_DURATION, false);
             },
             'Options' => () -> {
+                FlxG.sound.play(PathUtil.ofSound('select'));
                 FlxG.sound.music.stop();
                 GeneralUtil.fadeIntoState(new OptionsMenuState(), Constants.TRANSITION_DURATION, false);
             },
@@ -70,7 +94,7 @@ class MainMenuState extends FlxTransitionableState {
             b.size = 100;
             b.setBorderStyle(FlxTextBorderStyle.SHADOW, FlxColor.fromRGB(25, 25, 25), 5);
             b.updateHitbox();
-            b.x = buttonBgSprite.x + (buttonBgSprite.width - b.width);
+            b.x = buttonBgSprite.x + (buttonBgSprite.width - b.width) - 20;
             b.y = newY;
             b.updateHoverBounds();
             b.onClick = buttonClickFunctions.get(btn);
@@ -83,10 +107,11 @@ class MainMenuState extends FlxTransitionableState {
             };
             b.onHoverLost = () -> {
                 FlxTween.cancelTweensOf(b);
-                FlxTween.tween(b, { x: buttonBgSprite.x + (buttonBgSprite.width - b.width) }, 0.3, {
+                FlxTween.tween(b, { x: buttonBgSprite.x + (buttonBgSprite.width - b.width) - 20 }, 0.3, {
                     ease: FlxEase.quadOut
                 });
             };
+            b.cameras = [uiCamera];
             buttons.add(b);
             newY += b.height + 8;
         }
@@ -98,14 +123,30 @@ class MainMenuState extends FlxTransitionableState {
         menuText.updateHitbox();
         menuText.x = 60;
         menuText.y = 80;
+        menuText.cameras = [bgCamera];
         add(menuText);
+
+        if (CacheUtil.hasSeenIntro) {
+            FlxG.sound.music.time = 31000;
+        }
     }
 
     override function update(elapsed:Float) {
         super.update(elapsed);
 
+        bgCamera.zoom = FlxMath.lerp(Constants.DEFAULT_CAM_ZOOM, bgCamera.zoom, Math.exp(-elapsed * 3.125 * Constants.CAMERA_ZOOM_DECAY));
+
+        if (FlxG.keys.justPressed.SPACE) {
+            CacheUtil.hasSeenIntro = true;
+            FlxG.sound.music.time = 31000;
+        }
+
         if (Controls.getBinds().UI_BACK_JUST_PRESSED) {
             GeneralUtil.closeGame();
         }
+    }
+
+    function beatHit() {
+        bgCamera.zoom += 0.020 * songCamZoomIntensity;
     }
 }

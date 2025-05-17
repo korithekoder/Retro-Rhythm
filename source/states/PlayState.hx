@@ -1,8 +1,6 @@
 package states;
 
-import substates.PauseSubState;
 import backend.Controls;
-import flixel.sound.FlxSound;
 import backend.data.ClientPrefs;
 import backend.data.Constants;
 import backend.util.AssetUtil;
@@ -12,17 +10,19 @@ import backend.util.PathUtil;
 import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.FlxSprite;
-import flixel.FlxState;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.math.FlxMath;
+import flixel.sound.FlxSound;
 import flixel.text.FlxText;
 import flixel.ui.FlxBar;
 import flixel.util.FlxColor;
 import objects.gameplay.Note;
 import objects.gameplay.NoteLane;
+import objects.states.MusicBeatState;
 import states.menus.MainMenuState;
+import substates.PauseSubState;
 
-class PlayState extends FlxState {
+class PlayState extends MusicBeatState {
 
 	public static var noteHitsGroup:FlxTypedGroup<FlxText>;
 	public static var statsGroup:FlxTypedGroup<FlxText>;
@@ -52,13 +52,12 @@ class PlayState extends FlxState {
 	var songName:String;
 
 	var songSpeed:Float;
-	var songBPM:Int;
-	var songCamZoomIntensity:Float;
 	var songLength:Float;
 
 	var accuracyText:FlxText;
 	var comboText:FlxText;
 	var scoreText:FlxText;
+	var healthText:FlxText;
 	var timeText:FlxText;
 
 	var songNameText:FlxText;
@@ -70,15 +69,8 @@ class PlayState extends FlxState {
 	var healthBarTextDisplay:FlxText;
 	var timeBarTextDisplay:FlxText;
 
-	var beatDuration:Float;
-	var beatDurationMS:Float;
-	var beatCounter:Int = 0;
-	var lastBeat:Int = -1;
-
 	var musicTime:Float;
 	var musicTimeMS:Float;
-
-	var health:Float;
 
 	var currentNoteIdx:Int = 0;
 	var noteSpeed:Float;
@@ -91,25 +83,25 @@ class PlayState extends FlxState {
 
 	public function new(songId:String) {
 		super();
-
 		this.songId = songId;
-		this.songData = AssetUtil.getJsonData(PathUtil.ofChart(songId), {});
 
-		this.songNotes = AssetUtil.getDynamicField(this.songData, 'notes', []);
+		songData = AssetUtil.getJsonData(PathUtil.ofChart(songId), {});
+		songNotes = AssetUtil.getDynamicField(songData, 'notes', []);
+		songMetadata = AssetUtil.getDynamicField(songData, 'metadata', Constants.DEFAULT_METADATA);
 
-		this.songMetadata = AssetUtil.getDynamicField(this.songData, 'metadata', Constants.DEFAULT_METADATA);
-		this.songName = AssetUtil.getDynamicField(this.songMetadata, 'name', 'Unknown');
-		this.songComposer = AssetUtil.getDynamicField(this.songMetadata, 'composer', 'Unknown');
-		this.songCharter = AssetUtil.getDynamicField(this.songMetadata, 'charter', 'Unknown');
+		songName = AssetUtil.getDynamicField(songMetadata, 'name', 'Unknown');
+		songComposer = AssetUtil.getDynamicField(songMetadata, 'composer', 'Unknown');
+		songCharter = AssetUtil.getDynamicField(songMetadata, 'charter', 'Unknown');
 
-		this.songSpeed = AssetUtil.getDynamicField(this.songData, 'speed', 1);
-		this.songBPM = AssetUtil.getDynamicField(this.songData, 'songBPM', 60);
-		this.songCamZoomIntensity = AssetUtil.getDynamicField(this.songData, 'camzoom', 2);
+		songBPM = AssetUtil.getDynamicField(songData, 'bpm', 60);
+		songSpeed = AssetUtil.getDynamicField(songData, 'speed', 1);
+		songCamZoomIntensity = AssetUtil.getDynamicField(songData, 'camzoom', 2);
 
-		this.beatDuration = 60 / this.songBPM;
-		this.beatDurationMS = 60000 / this.songBPM;
+		beatDuration = 60 / songBPM;
+		beatDurationMS = 60000 / songBPM;
+		beatsBeforeHit = AssetUtil.getDynamicField(songData, 'beatsbeforehit', 4);
 
-		this.noteSpeed = (FlxG.height / this.beatDuration) * this.songSpeed;
+		noteSpeed = (FlxG.height / beatDuration) * songSpeed;
 	}
 	
 	override public function create() {
@@ -140,8 +132,6 @@ class PlayState extends FlxState {
 		FlxG.cameras.add(bgCamera);
 		FlxG.cameras.add(gameplayCamera);
 		FlxG.cameras.add(uiCamera);
-
-		health = Constants.MAX_HEALTH;
 
 		bgSprite = new FlxSprite();
 		bgSprite.loadGraphic(PathUtil.ofBackground(songId));
@@ -268,22 +258,24 @@ class PlayState extends FlxState {
 		healthBarShadow = new FlxSprite();
 		healthBarShadow.makeGraphic((Constants.NOTE_LANE_WIDTH * 4) + (Std.int(Constants.NOTE_LANE_SPACING) * 5), Constants.STAT_BAR_HEIGHT, FlxColor.fromRGB(25, 25, 25));
 		healthBarShadow.updateHitbox();
-		healthBarShadow.setPosition(noteLanesGroup.members[0].x - (Constants.NOTE_LANE_SPACING) + 5, Constants.STAT_BAR_OFFSET + 65);
+		healthBarShadow.setPosition(noteLanesGroup.members[0].x - (Constants.NOTE_LANE_SPACING) + 5,
+			(ClientPrefs.options.scrollType == DOWNSCROLL) ? Constants.STAT_BAR_OFFSET + 65 : FlxG.height - (Constants.STAT_BAR_OFFSET + 55));
 		healthBarShadow.cameras = [uiCamera];
 		add(healthBarShadow);
 
 		healthBar = new FlxBar(
 			noteLanesGroup.members[0].x - (Constants.NOTE_LANE_SPACING), 
-			Constants.STAT_BAR_OFFSET + 60, 
+			(ClientPrefs.options.scrollType == DOWNSCROLL) ? Constants.STAT_BAR_OFFSET + 60 : FlxG.height - (Constants.STAT_BAR_OFFSET + 60),   
 			LEFT_TO_RIGHT, 
 			(Constants.NOTE_LANE_WIDTH * 4) + (Std.int(Constants.NOTE_LANE_SPACING) * 5), 
 			Constants.STAT_BAR_HEIGHT, 
-			this, 
+			CacheUtil,   
 			"health", 
 			0.0, 
 			Constants.MAX_HEALTH
 		);
 		healthBar.createFilledBar(FlxColor.RED, FlxColor.GREEN);
+		healthBar.updateHitbox();
 		healthBar.cameras = [uiCamera];
 		add(healthBar);
 
@@ -312,14 +304,25 @@ class PlayState extends FlxState {
 		timeBar.cameras = [uiCamera];
 		add(timeBar);
 
+		healthText = new FlxText();
+		healthText.text = '';
+		healthText.size = 64;
+		healthText.color = FlxColor.WHITE;
+		healthText.setBorderStyle(OUTLINE, FlxColor.BLACK, 3);
+		healthText.updateHitbox();
+		healthText.x = healthBar.x + ((healthBar.width / 2) - (healthText.width / 2)) + 4;
+		healthText.y = healthBar.y + ((healthBar.height / 2) - (healthText.height / 2));
+		healthText.cameras = [uiCamera];
+		add(healthText);
+
 		timeText = new FlxText();
 		timeText.text = '';
 		timeText.size = 32;
 		timeText.color = FlxColor.WHITE;
 		timeText.setBorderStyle(FlxTextBorderStyle.OUTLINE, FlxColor.BLACK, 2.5);
 		timeText.updateHitbox();
-		timeText.x = (timeBar.x + (timeBar.width / 2)) - (timeText.width / 2) - 22;
-		timeText.y = (timeBar.y - (timeBar.height / 2)) - (timeText.height) + 13;
+		timeText.x = (timeBar.x + (timeBar.width / 2)) - (timeText.width / 2);
+		timeText.y = (timeBar.y + (timeBar.height / 2)) - (timeText.height / 2);
 		timeText.cameras = [uiCamera];
 		add(timeText);
 
@@ -333,22 +336,13 @@ class PlayState extends FlxState {
 	override public function update(elapsed:Float) {
 		super.update(elapsed);
 
-		if (health <= 0) {
+		if (CacheUtil.health <= 0) {
 			GeneralUtil.fadeIntoState(new MainMenuState(), Constants.TRANSITION_DURATION, false);
 		}
 
 		// Get the current music time in seconds
 		musicTime = FlxG.sound.music.time / 1000;
 		musicTimeMS = FlxG.sound.music.time;
-
-		// Handle beat logic
-		var currentBeat:Int = Math.floor(FlxG.sound.music.time / beatDurationMS);
-		if (currentBeat != lastBeat) {
-			lastBeat = currentBeat;
-			if (beatCounter % 4 == 0) {
-				beatHit();
-			}
-		}
 
 		for (note in notesGroup.members) {
 			if (!note.exists) {
@@ -357,9 +351,10 @@ class PlayState extends FlxState {
 		}
 
 		// Calculate the spawn buffer based on note speed, strumline position, and note height
-		var strumlinePosition:Float = (ClientPrefs.options.scrollType == DOWNSCROLL) ? FlxG.height
-			- Constants.STRUMLINE_Y_OFFSET : Constants.STRUMLINE_Y_OFFSET;
-		var spawnBuffer:Float = (strumlinePosition + (Constants.NOTE_SIZE / 2)) / noteSpeed;
+		var strumlineY:Float = (ClientPrefs.options.scrollType == DOWNSCROLL) ? FlxG.height - Constants.STRUMLINE_Y_OFFSET : Constants.STRUMLINE_Y_OFFSET;
+		var spawnY:Float = (ClientPrefs.options.scrollType == DOWNSCROLL) ? -Constants.NOTE_SIZE_HEIGHT : FlxG.height;
+		var travelDistance:Float = Math.abs(strumlineY - spawnY);
+		var spawnBuffer:Float = (travelDistance + (Constants.NOTE_SIZE_HEIGHT / 2)) / noteSpeed;
 
 		// Spawn notes in sync with the music
 		for (note in songNotes) {
@@ -403,16 +398,24 @@ class PlayState extends FlxState {
 			idx++;
 		}
 
-		health = CacheUtil.health;
-
 		CacheUtil.accuracy = FlxMath.roundDecimal((CacheUtil.realHitPoints / CacheUtil.totalHitPoints) * 100, 2);
 		accuracyText.text = 'Accuracy: ${(!Math.isNaN(CacheUtil.accuracy)) ? CacheUtil.accuracy : 0}%';
 		comboText.text = 'Combo: x${CacheUtil.combo}';
 		scoreText.text = 'Score: ${CacheUtil.score}';
+
 		var timeLeft:Float = FlxG.sound.music.length - FlxG.sound.music.time;
 		var minutesLeft:Int = Math.floor(timeLeft / 60000);
 		var secondsLeft:Int = Math.floor((timeLeft % 60000) / 1000);
 		timeText.text = '${Std.string(minutesLeft)} : ${secondsLeft < 10 ? '0' : ''}${Std.string(secondsLeft)}';
+		timeText.updateHitbox();
+		timeText.x = (timeBar.x + (timeBar.width / 2)) - (timeText.width / 2) + 4;
+		timeText.y = (timeBar.y + (timeBar.height / 2)) - (timeText.height / 2);
+
+		healthText.text = (!CacheUtil.botModeEnabled) ? 'HP: ${CacheUtil.health}%' : 'BOT PLAY ENABLED';
+		healthText.color = (CacheUtil.health > 30) ? FlxColor.WHITE : FlxColor.RED;
+		healthText.updateHitbox();
+		healthText.x = healthBar.x + ((healthBar.width / 2) - (healthText.width / 2));
+		healthText.y = healthBar.y + ((healthBar.height / 2) - (healthText.height / 2));
 
 		// Camera zoom logic
 		bgCamera.zoom = FlxMath.lerp(Constants.DEFAULT_CAM_ZOOM, bgCamera.zoom, Math.exp(-elapsed * 3.125 * Constants.CAMERA_ZOOM_DECAY));

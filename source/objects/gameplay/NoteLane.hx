@@ -1,5 +1,6 @@
 package objects.gameplay;
 
+import backend.data.ClientPrefs;
 import backend.util.CacheUtil;
 import flixel.math.FlxMath;
 import backend.data.Constants;
@@ -25,7 +26,7 @@ class NoteLane extends FlxSprite {
     override function update(elapsed:Float) {
         super.update(elapsed);
 
-        if (GeneralUtil.getPressedStrumBind(_lane) && !CacheUtil.botModeEnabled) {
+        if (GeneralUtil.getPressedStrumBind(_lane) && !CacheUtil.botModeEnabled && ClientPrefs.options.noteLaneFlash) {
             this.alpha = 0.9;
         }
 
