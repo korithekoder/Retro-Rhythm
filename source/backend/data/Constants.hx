@@ -154,5 +154,13 @@ final class Constants {
 
 	public static final OPTION_DISPLAY_TEXT_SIZE:Int = 64;
 
+    public static final NON_SPECIAL_EVENTS:Array<String> = [
+        'Add Camera Zoom',
+        'Set Beats Before Hit',
+        'Change Beats Before Hit',
+        'Set Cam Zoom Intensity',
+        'Change Cam Zoom Intensity'
+    ];
+
     private function new() {}
 }

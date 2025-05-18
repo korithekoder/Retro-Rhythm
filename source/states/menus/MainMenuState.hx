@@ -101,7 +101,7 @@ class MainMenuState extends MusicBeatState {
             b.onHover = () -> {
                 FlxG.sound.play(PathUtil.ofSound('blip'), false);
                 FlxTween.cancelTweensOf(b);
-                FlxTween.tween(b, { x: buttonBgSprite.x + 30 }, 0.3, {
+                FlxTween.tween(b, { x: buttonBgSprite.x + (buttonBgSprite.width / 2) - (b.width / 2) }, 0.3, {
                     ease: FlxEase.quadOut
                 });
             };
@@ -146,7 +146,7 @@ class MainMenuState extends MusicBeatState {
         }
     }
 
-    function beatHit() {
+    public function beatHit() {
         bgCamera.zoom += 0.020 * songCamZoomIntensity;
     }
 }

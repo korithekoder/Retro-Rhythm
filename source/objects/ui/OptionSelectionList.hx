@@ -96,7 +96,6 @@ class OptionSelectionList extends FlxTypedGroup<Option> {
         super.update(elapsed);
 
         if (this.members.length == 0) return;
-        if (this.members.length < 2) this.members[0].isFocused = true;
 
         if (this.scrollType != SelectionScrollType.NONE) {
             if (Controls.getBinds().UI_UP_JUST_PRESSED) {
@@ -128,7 +127,34 @@ class OptionSelectionList extends FlxTypedGroup<Option> {
             this._originalOrigins.get(basic).push(mbr.x);
         }
 
-        return super.add(basic);
+        super.add(basic);
+
+        if (members.length == 1) {
+            this.members[0].isFocused = true;
+            // For each object contained in each option
+            var mbrIdx:Int = 0;
+            for (o in basic) {
+                // The new x value (for tweening each option back and forth when the STICK_OUT type is used)
+                var newX:Float;
+                if (this.scrollType == SelectionScrollType.STICK_OUT) {
+                    // Tween the object to the side if the scroll type is STICK_OUT
+                    newX = o.x + ((this.alignType == SelectionAlignType.LEFT) ? 120 : -120);
+                } else {
+                    // Get the original X position for the current option member
+                    newX = this._originalOrigins.get(basic)[mbrIdx];
+                }
+                // The properties to tween
+                var options:Dynamic = {
+                    x: newX
+                    // y: o.y + ((dir < 0) ? spacing * -1 : spacing) 
+                };
+                // Tween the current object in the looped option
+                FlxTween.tween(o, options, this.scrollDuration, { type: FlxTweenType.PERSIST, ease: FlxEase.quadOut });
+                mbrIdx++;
+            }
+        }
+
+        return basic;
     }
 
     private function _scrollThroughOptions(dir:Int):Void {

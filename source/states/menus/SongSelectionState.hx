@@ -22,14 +22,13 @@ import backend.data.Constants;
 import objects.ui.SongBoardObject;
 import backend.util.AssetUtil;
 import openfl.Assets;
-import flixel.addons.transition.FlxTransitionableState;
 
 class SongSelectionState extends MusicBeatState {
 
     var bgCamera:FlxCamera;
     var uiCamera:FlxCamera;
     
-    var songBoard:FlxTypedGroup<SongBoardObject>;
+    var songBoardGroup:FlxTypedGroup<SongBoardObject>;
     var musicPlayerGroup:FlxTypedGroup<FlxSprite>;
     var bgSprite:FlxSprite;
     var bgSpriteOverlay:FlxSprite;  // For when switching the background to add an effect
@@ -44,8 +43,12 @@ class SongSelectionState extends MusicBeatState {
     var songDifficultyText:FlxText;
     var songBPMText:FlxText;
     var songSpeedText:FlxText;
-
+    var songTimeText:FlxText;
     var focusedSongIdx:Int = 0;
+    var musicTime:Float;
+
+    var specialEventsWarningSymbol:FlxSprite;
+    var specialEventsWarningText:FlxText;
 
     var isPaused:Bool = false;
     var canScroll:Bool = true;
@@ -56,7 +59,6 @@ class SongSelectionState extends MusicBeatState {
         FlxG.fullscreen = ClientPrefs.getClientPreference('fullscreen');
         CacheUtil.canPlayMenuMusic = true;
 
-        FlxG.cameras.reset();
         bgCamera = new FlxCamera();
         uiCamera = new FlxCamera();
         uiCamera.bgColor.alpha = 0;
@@ -72,21 +74,31 @@ class SongSelectionState extends MusicBeatState {
         bgSpriteOverlay.cameras = [bgCamera];
         add(bgSpriteOverlay);
 
-        songBoard = new FlxTypedGroup<SongBoardObject>();
-        songBoard.cameras = [uiCamera];
-        add(songBoard);
+        songBoardGroup = new FlxTypedGroup<SongBoardObject>();
+        songBoardGroup.cameras = [uiCamera];
+        add(songBoardGroup);
 
         var toAdd:Array<SongBoardObject> = [];
         for (asset in Assets.list()) {
             if (asset.indexOf('assets/charts/') == 0) {
                 var song:Dynamic = AssetUtil.getJsonData(asset);
                 var songId:String = asset.split('/')[asset.split('/').length - 1];
+                var songEvents:Array<Dynamic> = AssetUtil.getDynamicField(song, 'events', []);
                 var songMetadata = AssetUtil.getDynamicField(song, 'metadata', Constants.DEFAULT_METADATA);
 		        var songName = AssetUtil.getDynamicField(songMetadata, 'name', 'Unknown');
                 var songDifficulty = AssetUtil.getDynamicField(songMetadata, 'difficulty', '?');
                 var songBannerColor = AssetUtil.getDynamicField(songMetadata, 'bannercolor', ["0", "0", "0"]);
                 var songSpeed = AssetUtil.getDynamicField(song, 'speed', '?');
 		        var songBPM = AssetUtil.getDynamicField(song, 'bpm', '?');
+                var songHasSpecialEvents:Bool = false;
+
+                for (event in songEvents) {
+                    var name = AssetUtil.getDynamicField(event, 'name', Constants.NON_SPECIAL_EVENTS[0]);
+                    if (!Constants.NON_SPECIAL_EVENTS.contains(name)) {
+                        songHasSpecialEvents = true;
+                        break;
+                    }
+                }
 
                 var banner:SongBoardObject = new SongBoardObject(
                     0, 
@@ -95,7 +107,8 @@ class SongSelectionState extends MusicBeatState {
                     songBPM,
                     songSpeed,
                     songDifficulty,
-                    songBannerColor
+                    songBannerColor,
+                    songHasSpecialEvents
                 );
                 
                 toAdd.push(banner);
@@ -109,18 +122,39 @@ class SongSelectionState extends MusicBeatState {
         var newY:Float = FlxG.height / 2;
         for (b in toAdd) {
             b.bg.setPosition(FlxG.width / 2 - b.bg.width / 2, newY);
-            songBoard.add(b);
+            songBoardGroup.add(b);
             newY += b.bg.height + Constants.SONG_BANNER_SPACING;
         }
 
-        for (i in 0...songBoard.length) {
-            var banner:SongBoardObject = songBoard.members[i];
+        for (i in 0...songBoardGroup.length) {
+            var banner:SongBoardObject = songBoardGroup.members[i];
             banner.bg.setPosition(FlxG.width / 2 - banner.bg.width / 2, banner.bg.y);
         }
 
         musicPlayerGroup = new FlxTypedGroup<FlxSprite>();
         musicPlayerGroup.cameras = [uiCamera];
         add(musicPlayerGroup);
+
+        specialEventsWarningSymbol = new FlxSprite();
+        specialEventsWarningSymbol.loadGraphic(PathUtil.ofImage('warning'));
+        specialEventsWarningSymbol.scale.set(4, 4);
+        specialEventsWarningSymbol.updateHitbox();
+        specialEventsWarningSymbol.x = (FlxG.width - specialEventsWarningSymbol.width) - 128;
+        specialEventsWarningSymbol.y = (FlxG.height / 2) - 40;
+        specialEventsWarningSymbol.cameras = [uiCamera];
+        add(specialEventsWarningSymbol);
+
+        specialEventsWarningText = new FlxText();
+        specialEventsWarningText.text = 'This song has special events\nwhich might effect gameplay!';
+        specialEventsWarningText.size = 25;
+        specialEventsWarningText.color = FlxColor.ORANGE;
+        specialEventsWarningText.setBorderStyle(OUTLINE_FAST, FlxColor.BLACK, 3);
+        specialEventsWarningText.alignment = FlxTextAlign.RIGHT;
+        specialEventsWarningText.updateHitbox();
+        specialEventsWarningText.x = (FlxG.width - specialEventsWarningText.width) - 60;
+        specialEventsWarningText.y = (specialEventsWarningSymbol.y + specialEventsWarningSymbol.height) + 15;
+        specialEventsWarningText.cameras = [uiCamera];
+        add(specialEventsWarningText);
 
         musicPlayerBg = new FlxSprite();
         musicPlayerBg.makeGraphic(FlxG.width, 150, FlxColor.BLACK);
@@ -156,7 +190,7 @@ class SongSelectionState extends MusicBeatState {
             if ((FlxG.sound.music.time / 1000) > 0.5) {
                 FlxG.sound.music.time = 0;
             } else {
-                scrollSongs(-1);
+                scrollSongs(-1, false);
             }
         };
         musicPlayerGroup.add(lastSongButton);
@@ -168,9 +202,18 @@ class SongSelectionState extends MusicBeatState {
         nextSongButton.setPosition(playButton.x + lastSongButton.width + 20, (musicPlayerBg.height / 2) - (lastSongButton.height / 2));
         nextSongButton.onClick = () -> {
             FlxG.sound.play(PathUtil.ofSound('hitsound'));
-            scrollSongs(1);
+            scrollSongs(1, false);
         };
         musicPlayerGroup.add(nextSongButton);
+
+        songTimeText = new FlxText();
+        songTimeText.text = '0:00 / 0:00';
+        songTimeText.size = 20;
+        songTimeText.setBorderStyle(OUTLINE_FAST, FlxColor.BLACK, 2);
+        songTimeText.updateHitbox();
+        songTimeText.x = (FlxG.width / 2) - (songTimeText.width / 2);
+        songTimeText.y = 115;
+        musicPlayerGroup.add(songTimeText);
 
         timeBar = new FlxBar(
             20,
@@ -179,9 +222,7 @@ class SongSelectionState extends MusicBeatState {
             FlxG.width - 40,
             5,
             FlxG.sound.music,
-            'time',
-            0.0,
-            FlxG.sound.music.length
+            'time'
         );
         timeBar.y = (musicPlayerBg.y + musicPlayerBg.height) - (timeBar.height) - 3;
         timeBar.createFilledBar(FlxColor.fromRGB(70, 70, 70), FlxColor.WHITE);
@@ -224,25 +265,26 @@ class SongSelectionState extends MusicBeatState {
         songSpeedText.y = songBPMText.y + songBPMText.height - 2;
         musicPlayerGroup.add(songSpeedText);
 
-        var firstMember:SongBoardObject = songBoard.members[0];
+        var firstMember:SongBoardObject = songBoardGroup.members[0];
         firstMember.isFocusedOn = true;
         setSongInfo(firstMember);
-
         bgSprite.loadGraphic(PathUtil.ofBackground(firstMember.id), false);
         bgSprite.setGraphicSize(FlxG.width, FlxG.height);
         bgSprite.updateHitbox();
         bgSprite.setPosition(0, 0);
-
+        specialEventsWarningSymbol.visible = firstMember.hasSpecialEvents;
+        specialEventsWarningText.visible = firstMember.hasSpecialEvents;
         setSongData(firstMember);
-        FlxG.sound.playMusic(PathUtil.ofSong(songBoard.members[0].id));
+        FlxG.sound.music.loadEmbedded(PathUtil.ofSong(songBoardGroup.members[0].id), true, false);
+        FlxG.sound.music.play();
+        setSongTimeInfo();
+        timeBar.setRange(0.0, FlxG.sound.music.length);
     }
 
     override function update(elapsed:Float) {
         super.update(elapsed);
 
-        playButton.loadGraphic(isPaused ? PathUtil.ofImage('play-button') : PathUtil.ofImage('pause-button'));
-
-        bgCamera.zoom = FlxMath.lerp(Constants.DEFAULT_CAM_ZOOM, bgCamera.zoom, Math.exp(-elapsed * 3.125 * Constants.CAMERA_ZOOM_DECAY));
+        musicTime = FlxG.sound.music.time / 1000;
 
         if (Controls.getBinds().UI_UP_JUST_PRESSED) {
             scrollSongs(-1);
@@ -262,26 +304,33 @@ class SongSelectionState extends MusicBeatState {
             FlxG.sound.play(PathUtil.ofSound('menu-back'), false);
             GeneralUtil.fadeIntoState(new MainMenuState(), Constants.TRANSITION_DURATION, false);
         }
+
+        setSongTimeInfo();
+        playButton.loadGraphic(isPaused ? PathUtil.ofImage('play-button') : PathUtil.ofImage('pause-button'));
+        bgCamera.zoom = FlxMath.lerp(Constants.DEFAULT_CAM_ZOOM, bgCamera.zoom, Math.exp(-elapsed * 3.125 * Constants.CAMERA_ZOOM_DECAY));
     }
 
-    function scrollSongs(dir:Int):Void {
+    function scrollSongs(dir:Int, playSound:Bool = true):Void {
         isPaused = false;
 
         if (!canScroll) return;
         if ((focusedSongIdx + dir) < 0) return;
-        if ((focusedSongIdx + dir) > songBoard.members.length - 1) return;
+        if ((focusedSongIdx + dir) > songBoardGroup.members.length - 1) return;
 
         focusedSongIdx += dir;
         canScroll = false;
         FlxG.sound.music.stop();
 
-        var banner = songBoard.members[focusedSongIdx];
+        var banner = songBoardGroup.members[focusedSongIdx];
 
-        for (bnr in songBoard.members) {
+        specialEventsWarningSymbol.visible = banner.hasSpecialEvents;
+        specialEventsWarningText.visible = banner.hasSpecialEvents;
+
+        for (bnr in songBoardGroup.members) {
             bnr.isFocusedOn = (bnr == banner);
         }
 
-        for (bnr in songBoard.members) {
+        for (bnr in songBoardGroup.members) {
             var newY:Float = bnr.bg.y;
             newY += (bnr.bg.height + Constants.SONG_BANNER_SPACING) * dir * -1;
             FlxTween.tween(
@@ -297,7 +346,10 @@ class SongSelectionState extends MusicBeatState {
                     },
                     onComplete: (_) -> {
                         setSongData(banner);
-                        FlxG.sound.playMusic(PathUtil.ofSong(banner.id));
+                        FlxG.sound.music.loadEmbedded(PathUtil.ofSong(banner.id), false, false);
+                        FlxG.sound.music.play();
+                        setSongTimeInfo();
+                        timeBar.setRange(0.0, FlxG.sound.music.length);
                     }
                 }
             );
@@ -323,7 +375,9 @@ class SongSelectionState extends MusicBeatState {
             canScroll = true;
         });
 
-        FlxG.sound.play(PathUtil.ofSound('hitsound'));
+        if (playSound) {
+            FlxG.sound.play(PathUtil.ofSound('hitsound'));
+        }
     }
 
     function setSongInfo(banner:SongBoardObject) {
@@ -333,6 +387,19 @@ class SongSelectionState extends MusicBeatState {
         songDifficultyText.setBorderStyle(FlxTextBorderStyle.SHADOW, GeneralUtil.darkenFlxColor(GeneralUtil.getDifficultyColor(banner.difficulty), 70), 3);
         songBPMText.text = 'BPM: ${banner.bpm}';
         songSpeedText.text = 'Speed: ${banner.speed}';
+    }
+
+    function setSongTimeInfo():Void {
+        var timePassedMinutes:Int = Math.floor(FlxG.sound.music.time / 60000);
+        var timePassedSeconds:Int = Math.floor((FlxG.sound.music.time % 60000) / 1000);
+        var timeLeftMinutes:Int = Math.floor(FlxG.sound.music.length / 60000);
+        var timeLeftSeconds:Int = Math.floor((FlxG.sound.music.length % 60000) / 1000);
+        var timePassedString:String = '$timePassedMinutes : ${(timePassedSeconds >= 10) ? '' : '0'}$timePassedSeconds';
+        var timeLeftString:String = '$timeLeftMinutes : ${(timeLeftSeconds >= 10) ? '' : '0'}$timeLeftSeconds';
+        songTimeText.text = '$timePassedString  /  $timeLeftString';
+        songTimeText.updateHitbox();
+        songTimeText.x = (FlxG.width / 2) - (songTimeText.width / 2);
+        songTimeText.y = 115;
     }
 
     function setSongData(banner:SongBoardObject):Void {
@@ -346,7 +413,37 @@ class SongSelectionState extends MusicBeatState {
         beatDurationMS = 60000 / songBPM;
     }
 
-    function beatHit() {
+    function triggerEvent(name:String, values:Array<Dynamic>):Void {
+		switch (name) {
+			case 'Add Camera Zoom':
+				var v1:Float = Std.parseFloat(Std.string(values[0]));
+				bgCamera.zoom += 0.015 * songCamZoomIntensity + v1;
+
+			case 'Set Beats Before Hit':
+				var v1 = Std.parseInt(Std.string(values[0]));
+				beatsBeforeHit = v1;
+				beatCounter = 0;
+				lastBeat = -1;
+
+			case 'Change Beats Before Hit':
+				var v1 = Std.parseInt(Std.string(values[0]));
+				if (beatsBeforeHit + v1 > 0) {
+					beatCounter = 0;
+					lastBeat = -1;
+					beatsBeforeHit += v1;
+				}
+
+			case 'Set Cam Zoom Intensity':
+				var v1:Float = Std.parseFloat(Std.string(values[0]));
+				songCamZoomIntensity = v1;
+
+			case 'Change Cam Zoom Intensity':
+				var v1:Float = Std.parseFloat(Std.string(values[0]));
+				songCamZoomIntensity += v1;
+        }
+    }
+
+    public function beatHit() {
         bgCamera.zoom += 0.015 * songCamZoomIntensity;
     }
 }

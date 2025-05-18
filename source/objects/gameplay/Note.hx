@@ -66,6 +66,7 @@ class Note extends FlxSprite {
                 - Constants.STRUMLINE_Y_OFFSET : Constants.STRUMLINE_Y_OFFSET;
             var strumlineDistance:Float = Math.abs(strumlinePosition - (this.y + (this.height / 2)));
 
+            this.x = PlayState.noteLanesGroup.members[_lane].x;
             this.y += (ClientPrefs.options.scrollType == DOWNSCROLL ? 1 : -1) * _speed * elapsed;
 
             if (_scrollType == DOWNSCROLL) {
@@ -170,13 +171,11 @@ class Note extends FlxSprite {
         PlayState.noteHitTypePopup.color = color;
         PlayState.noteHitTypePopup.setBorderStyle(FlxTextBorderStyle.SHADOW, shadowColor, 5);
         PlayState.noteHitTypePopup.updateHitbox();
-		PlayState.noteHitTypePopup.x = ((minX + maxX) / 2) - (PlayState.noteHitTypePopup.width / 2) + 50;
 		PlayState.noteHitTypePopup.y = 325;
 		PlayState.noteHitTypePopup.alpha = 1;
 
         PlayState.comboPopup.text = 'x${CacheUtil.combo}';
         PlayState.comboPopup.setBorderStyle(FlxTextBorderStyle.SHADOW, FlxColor.GRAY, 5);
-		PlayState.comboPopup.x = ((minX + maxX) / 2) - (PlayState.comboPopup.width / 2) + 50;
 		PlayState.comboPopup.y = PlayState.noteHitTypePopup.y + PlayState.noteHitTypePopup.height - 12;
 		PlayState.comboPopup.alpha = 1;
 

@@ -29,5 +29,5 @@ abstract class MusicBeatState extends FlxTransitionableState {
 		}
     }
 
-    abstract function beatHit():Void;
+    abstract public function beatHit():Void;
 }

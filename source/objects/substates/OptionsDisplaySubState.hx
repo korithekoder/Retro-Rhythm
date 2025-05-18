@@ -48,11 +48,6 @@ abstract class OptionsDisplaySubState extends FlxSubState {
         }
     }
 
-    override function closeSubState() {
-        FlxG.sound.play(PathUtil.ofSound('menu-back'), false);
-        super.closeSubState();
-    }
-
     /**
      * Abstract function that is intended to be overridden to 
      * add the options to the display.

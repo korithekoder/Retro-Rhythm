@@ -97,6 +97,7 @@ class OptionsMenuState extends FlxTransitionableState {
 
     override function closeSubState() {
         super.closeSubState();
+        FlxG.sound.play(PathUtil.ofSound('menu-back'), false);
         buttonsGroup.visible = true;
     }
 

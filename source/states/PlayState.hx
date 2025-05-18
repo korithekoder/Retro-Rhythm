@@ -1,5 +1,7 @@
 package states;
 
+import flixel.tweens.FlxEase;
+import flixel.tweens.FlxTween;
 import backend.Controls;
 import backend.data.ClientPrefs;
 import backend.data.Constants;
@@ -45,6 +47,7 @@ class PlayState extends MusicBeatState {
 	var songId:String;
 	var songData:Dynamic;
 	var songNotes:Array<Dynamic>;
+	var songEvents:Array<Dynamic>;
 	var songMetadata:Dynamic;
 
 	var songComposer:String;
@@ -87,6 +90,7 @@ class PlayState extends MusicBeatState {
 
 		songData = AssetUtil.getJsonData(PathUtil.ofChart(songId), {});
 		songNotes = AssetUtil.getDynamicField(songData, 'notes', []);
+		songEvents = AssetUtil.getDynamicField(songData, 'events', []);
 		songMetadata = AssetUtil.getDynamicField(songData, 'metadata', Constants.DEFAULT_METADATA);
 
 		songName = AssetUtil.getDynamicField(songMetadata, 'name', 'Unknown');
@@ -102,6 +106,17 @@ class PlayState extends MusicBeatState {
 		beatsBeforeHit = AssetUtil.getDynamicField(songData, 'beatsbeforehit', 4);
 
 		noteSpeed = (FlxG.height / beatDuration) * songSpeed;
+
+		songNotes.sort((a, b) -> {
+			var aTime:Float = AssetUtil.getDynamicField(a, 'time', 0);
+			var bTime:Float = AssetUtil.getDynamicField(b, 'time', 0);
+			return Std.int(aTime - bTime);
+		});
+		songEvents.sort((a, b) -> {
+			var aTime:Float = AssetUtil.getDynamicField(a, 'time', 0);
+			var bTime:Float = AssetUtil.getDynamicField(b, 'time', 0);
+			return Std.int(aTime - bTime);
+		});
 	}
 	
 	override public function create() {
@@ -243,7 +258,7 @@ class PlayState extends MusicBeatState {
 		noteHitTypePopup.x = 0;
 		noteHitTypePopup.y = 400;
 		noteHitTypePopup.alpha = 0;
-		noteHitTypePopup.cameras = [uiCamera];
+		noteHitTypePopup.cameras = [gameplayCamera];
 		add(noteHitTypePopup);
 
 		comboPopup = new FlxText();
@@ -252,7 +267,7 @@ class PlayState extends MusicBeatState {
 		comboPopup.x = 0;
 		comboPopup.y = noteHitTypePopup.y + noteHitTypePopup.height + 8;
 		comboPopup.alpha = 0;
-		comboPopup.cameras = [uiCamera];
+		comboPopup.cameras = [gameplayCamera];
 		add(comboPopup);
 
 		healthBarShadow = new FlxSprite();
@@ -301,6 +316,7 @@ class PlayState extends MusicBeatState {
 		);
 		timeBar.createFilledBar(FlxColor.fromRGB(50, 50, 50), FlxColor.WHITE);
 		timeBar.updateHitbox();
+		timeBar.numDivisions = 400;
 		timeBar.cameras = [uiCamera];
 		add(timeBar);
 
@@ -372,6 +388,18 @@ class PlayState extends MusicBeatState {
 			}
 		}
 
+		// Check for events
+		for (event in songEvents) {
+			var eventName:String = AssetUtil.getDynamicField(event, 'name', '');
+			var eventTime:Float = AssetUtil.getDynamicField(event, 'time', musicTime);
+			var eventValues:Array<Dynamic> = AssetUtil.getDynamicField(event, 'values', []);
+
+			if (eventTime <= musicTime) {
+				triggerEvent(eventName, eventValues);
+				songEvents.shift();
+			}
+		}
+
 		for (note in notesGroup.members) {
 			for (lane in 0...4) {
 				var firstNote:Note = firstNotes.get(lane);
@@ -403,6 +431,17 @@ class PlayState extends MusicBeatState {
 		comboText.text = 'Combo: x${CacheUtil.combo}';
 		scoreText.text = 'Score: ${CacheUtil.score}';
 
+		var minX:Float = Math.POSITIVE_INFINITY;
+        var maxX:Float = Math.NEGATIVE_INFINITY;
+        for (s in noteLanesGroup.members) {
+            if (s != null) {
+                minX = Math.min(minX, s.x);
+                maxX = Math.max(maxX, s.x);
+            }
+        }
+		noteHitTypePopup.x = ((minX + maxX) / 2) - (noteHitTypePopup.width / 2) + 50;
+		comboPopup.x = ((minX + maxX) / 2) - (comboPopup.width / 2) + 50;
+
 		var timeLeft:Float = FlxG.sound.music.length - FlxG.sound.music.time;
 		var minutesLeft:Int = Math.floor(timeLeft / 60000);
 		var secondsLeft:Int = Math.floor((timeLeft % 60000) / 1000);
@@ -411,7 +450,7 @@ class PlayState extends MusicBeatState {
 		timeText.x = (timeBar.x + (timeBar.width / 2)) - (timeText.width / 2) + 4;
 		timeText.y = (timeBar.y + (timeBar.height / 2)) - (timeText.height / 2);
 
-		healthText.text = (!CacheUtil.botModeEnabled) ? 'HP: ${CacheUtil.health}%' : 'BOT PLAY ENABLED';
+		healthText.text = (!CacheUtil.botModeEnabled) ? 'HP: ${Math.ceil(CacheUtil.health)}%' : 'BOT PLAY ENABLED';
 		healthText.color = (CacheUtil.health > 30) ? FlxColor.WHITE : FlxColor.RED;
 		healthText.updateHitbox();
 		healthText.x = healthBar.x + ((healthBar.width / 2) - (healthText.width / 2));
@@ -423,7 +462,80 @@ class PlayState extends MusicBeatState {
 		uiCamera.zoom = FlxMath.lerp(Constants.DEFAULT_CAM_ZOOM, uiCamera.zoom, Math.exp(-elapsed * 3.125 * Constants.CAMERA_ZOOM_DECAY));
 	}
 
-	function beatHit():Void {
+	function triggerEvent(name:String, values:Array<Dynamic>):Void {
+		switch (name) {
+
+			/*
+			 * REGULAR EVENTS (NON GAMEPLAY CHANGING)
+			 */
+
+			case 'Add Camera Zoom':
+				var v1:Float = Std.parseFloat(Std.string(values[0]));
+				bgCamera.zoom += 0.015 * songCamZoomIntensity + v1;
+				gameplayCamera.zoom += 0.020 * songCamZoomIntensity + v1;
+				uiCamera.zoom += 0.025 * songCamZoomIntensity + v1;
+
+			case 'Set Beats Before Hit':
+				var v1 = Std.parseInt(Std.string(values[0]));
+				beatsBeforeHit = v1;
+				beatCounter = 0;
+				lastBeat = -1;
+
+			case 'Change Beats Before Hit':
+				var v1 = Std.parseInt(Std.string(values[0]));
+				if (beatsBeforeHit + v1 > 0) {
+					beatCounter = 0;
+					lastBeat = -1;
+					beatsBeforeHit += v1;
+				}
+
+			case 'Set Cam Zoom Intensity':
+				var v1:Float = Std.parseFloat(Std.string(values[0]));
+				songCamZoomIntensity = v1;
+
+			case 'Change Cam Zoom Intensity':
+				var v1:Float = Std.parseFloat(Std.string(values[0]));
+				songCamZoomIntensity += v1;
+
+			/*
+			 * SPECIAL EVENTS (GAMEPLAY CHANGING)
+			 */
+
+			case 'Move Note Lanes':
+				var v1:Float = Std.parseFloat(Std.string(values[0]));
+				var v2:Float = Std.parseFloat(Std.string(values[1]));
+				for (member in noteLanesGroup.members) {
+					FlxTween.tween(member, { x: member.x + v2 }, v1, {
+						ease: FlxEase.quadInOut
+					});
+				}
+				FlxTween.tween(strumline, { x: strumline.x + v2 }, v1, {
+					ease: FlxEase.quadInOut
+				});
+				FlxTween.tween(uiCamera, { alpha: 0 }, v1 - 0.4, {
+					ease: FlxEase.quadInOut
+				});
+
+			case 'Reset Note Lane Positions':
+				var v1:Float = Std.parseFloat(Std.string(values[0]));
+				var newX:Float = 275;
+				for (member in noteLanesGroup.members) {
+					FlxTween.tween(member, { x: newX }, v1, {
+						ease: FlxEase.quadInOut
+					});
+					newX += Constants.NOTE_LANE_WIDTH + Constants.NOTE_LANE_SPACING;
+				}
+				FlxTween.tween(strumline, { x: 275 - (Constants.NOTE_LANE_SPACING) }, v1, {
+					ease: FlxEase.quadInOut
+				});
+				FlxTween.tween(uiCamera, { alpha: 1 }, v1, {
+					ease: FlxEase.quadInOut
+				});
+
+		}
+	}
+
+	public function beatHit():Void {
 		bgCamera.zoom += 0.015 * songCamZoomIntensity;
 		gameplayCamera.zoom += 0.020 * songCamZoomIntensity;
 		uiCamera.zoom += 0.025 * songCamZoomIntensity;

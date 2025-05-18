@@ -17,14 +17,16 @@ class SongBoardObject extends FlxTypedGroup<FlxSprite> {
     public var difficulty:Int;
 
     public var bg:ClickableSprite;
+    public var eventsWarningSymbol:FlxSprite;
     public var id:String;  // The ID of the song
     public var name:String;
     public var bpm:Int;
     public var speed:Float;
+    public var hasSpecialEvents:Bool;
     private var _songNameText:FlxText;
     private var _songDifficultyText:FlxText;
 
-    public function new(y:Float, id:String, name:String, bpm:Int, speed:Float, difficulty:Int, bannerColor:Array<Int>) {
+    public function new(y:Float, id:String, name:String, bpm:Int, speed:Float, difficulty:Int, bannerColor:Array<Int>, hasSpecialEvents:Bool = false) {
         super();
 
         this.difficulty = difficulty; 
@@ -32,6 +34,7 @@ class SongBoardObject extends FlxTypedGroup<FlxSprite> {
         this.name = name;
         this.bpm = bpm;
         this.speed = speed;
+        this.hasSpecialEvents = hasSpecialEvents;
 
         _songNameText = new FlxText();
         _songNameText.text = name;
@@ -73,6 +76,14 @@ class SongBoardObject extends FlxTypedGroup<FlxSprite> {
             }
         }
         insert(0, bg);  // Make sure the banner is in the back!
+
+        eventsWarningSymbol = new FlxSprite();
+        eventsWarningSymbol.loadGraphic(PathUtil.ofImage('warning'));
+        eventsWarningSymbol.setGraphicSize(60, 60);
+        eventsWarningSymbol.updateHitbox();
+        eventsWarningSymbol.alpha = 0.8;
+        eventsWarningSymbol.visible = hasSpecialEvents;
+        add(eventsWarningSymbol);
     }
 
     override function update(elapsed:Float) {
@@ -90,5 +101,7 @@ class SongBoardObject extends FlxTypedGroup<FlxSprite> {
     public function setTextPositions():Void {
         _songNameText.setPosition(bg.x + 2, bg.y + 2);
         _songDifficultyText.setPosition(bg.x + 2, (_songNameText.y + _songNameText.height) - 6);
+        eventsWarningSymbol.x = (bg.x + bg.width) - eventsWarningSymbol.width - 20;
+        eventsWarningSymbol.y = bg.y + (bg.height / 2) - (eventsWarningSymbol.height / 2);
     }
 }
