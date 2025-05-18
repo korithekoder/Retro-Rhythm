@@ -1,5 +1,6 @@
 package states.menus;
 
+import flixel.graphics.frames.FlxAtlasFrames;
 import substates.options.MiscOptionsSubState;
 import flixel.util.FlxTimer;
 import flixel.tweens.FlxEase;
@@ -26,15 +27,31 @@ class OptionsMenuState extends FlxTransitionableState {
     var buttonClickFunctions:Map<String, Void -> Void>;
     var buttonIds:Array<String> = ['Gameplay', 'Misc.'];
 
+    var canClick:Bool = true;
+    var canBackOut:Bool = true;  // Whether the back button can be used to exit the menu
+
     override function create() {
         super.create();
 
         CacheUtil.canPlayMenuMusic = true;
         GeneralUtil.playMenuMusic('Ennui');
 
+        persistentUpdate = true;
+        persistentDraw = true;
+
+        var frames:Array<Int> = [];
+        for (f in 0...24) {
+            frames.push(f);
+        }
+
+        var paths:Array<String> = PathUtil.ofSpriteSheet('options-bg');
+
         bgSprite = new FlxSprite();
-        bgSprite.loadGraphic(PathUtil.ofImage('options-bg'), false);
-        bgSprite.setGraphicSize(FlxG.width, FlxG.height);
+        bgSprite.loadGraphic(PathUtil.ofImage('options-bg'), true);
+        bgSprite.frames = FlxAtlasFrames.fromSparrow(paths[0], paths[1]);
+        bgSprite.animation.addByIndices('bg', 'options-bg_', frames, '', 11, true);
+        bgSprite.animation.play('bg');
+        bgSprite.setGraphicSize(0, FlxG.height);
         bgSprite.updateHitbox();
         bgSprite.setPosition(0, 0);
         add(bgSprite);
@@ -63,7 +80,7 @@ class OptionsMenuState extends FlxTransitionableState {
             b.y = newY;
             b.onClick = buttonClickFunctions.get(btn);
             b.onHover = () -> {
-                FlxG.sound.play(PathUtil.ofSound('blip'), false);
+                if (canClick) FlxG.sound.play(PathUtil.ofSound('blip'), false);
                 b.text = '> $btn <';
                 b.updateHitbox();
                 b.x = (FlxG.width / 2) - (b.width / 2);
@@ -88,7 +105,8 @@ class OptionsMenuState extends FlxTransitionableState {
     override function update(elapsed:Float) {
         super.update(elapsed);
 
-        if (Controls.getBinds().UI_BACK_JUST_PRESSED) {
+        if (Controls.getBinds().UI_BACK_JUST_PRESSED && canBackOut) {
+            canClick = false;
             FlxG.sound.play(PathUtil.ofSound('menu-back'), false);
             FlxG.sound.music.stop();
             GeneralUtil.fadeIntoState(new MainMenuState(), Constants.TRANSITION_DURATION, false);
@@ -98,7 +116,9 @@ class OptionsMenuState extends FlxTransitionableState {
     override function closeSubState() {
         super.closeSubState();
         FlxG.sound.play(PathUtil.ofSound('menu-back'), false);
+        canClick = true;
         buttonsGroup.visible = true;
+        canBackOut = true;
     }
 
     override function destroy() {
@@ -111,6 +131,9 @@ class OptionsMenuState extends FlxTransitionableState {
         if (menu == null) {
             return;
         }
+        if (!canClick) return;
+        canClick = false;
+        canBackOut = false;
         buttonsGroup.visible = false;
         openSubState(menu);
     } 

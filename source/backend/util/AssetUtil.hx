@@ -6,6 +6,7 @@ import openfl.utils.Assets;
 /**
  * Utility class for obtaining and manipulating data in files or variables.
  */
+@:access(openfl.display.BitmapData)
 final class AssetUtil {
     
     private function new() {}
@@ -49,7 +50,9 @@ final class AssetUtil {
 
         for (id in Assets.list()) {
             if (id.indexOf('assets/backgrounds/') == 0 && id.substring(id.length - 4) == '.png') {
-                bgFiles.push(id);
+                if (id != PathUtil.ofBackground('dead-built-like-an-apple')) {
+                    bgFiles.push(id);
+                }
             }
         }
 

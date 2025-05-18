@@ -1,7 +1,5 @@
 package states;
 
-import flixel.tweens.FlxEase;
-import flixel.tweens.FlxTween;
 import backend.Controls;
 import backend.data.ClientPrefs;
 import backend.data.Constants;
@@ -16,8 +14,11 @@ import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.math.FlxMath;
 import flixel.sound.FlxSound;
 import flixel.text.FlxText;
+import flixel.tweens.FlxEase;
+import flixel.tweens.FlxTween;
 import flixel.ui.FlxBar;
 import flixel.util.FlxColor;
+import flixel.util.FlxTimer;
 import objects.gameplay.Note;
 import objects.gameplay.NoteLane;
 import objects.states.MusicBeatState;
@@ -84,6 +85,11 @@ class PlayState extends MusicBeatState {
 
 	var bgSprite:FlxSprite;
 
+	var countdownActive:Bool = true;
+	var countdownText:FlxText;
+
+	var music:FlxSound;
+
 	public function new(songId:String) {
 		super();
 		this.songId = songId;
@@ -130,6 +136,14 @@ class PlayState extends MusicBeatState {
 		CacheUtil.health = Constants.MAX_HEALTH;
 		CacheUtil.currentSongId = songId;
 		GeneralUtil.resetHitsArray();
+
+		music = new FlxSound();
+		FlxG.sound.list.add(music);
+		FlxG.sound.music.loadEmbedded(PathUtil.ofSong(songId), false, false);
+		music.loadEmbedded(PathUtil.ofSong(songId), false, false);
+		FlxG.sound.music.onComplete = () -> {
+			GeneralUtil.fadeIntoState(new MainMenuState(), Constants.TRANSITION_DURATION, false);
+		};
 
 		firstNotes = [
 			0 => null,
@@ -309,10 +323,10 @@ class PlayState extends MusicBeatState {
 			LEFT_TO_RIGHT, 
 			Constants.STAT_BAR_WIDTH, 
 			Constants.STAT_BAR_HEIGHT, 
-			this,
-			"musicTimeMS",
+			music,
+			"time",
 			0.0,
-			new FlxSound().loadEmbedded(PathUtil.ofSong(songId)).length
+			music.length
 		);
 		timeBar.createFilledBar(FlxColor.fromRGB(50, 50, 50), FlxColor.WHITE);
 		timeBar.updateHitbox();
@@ -342,11 +356,16 @@ class PlayState extends MusicBeatState {
 		timeText.cameras = [uiCamera];
 		add(timeText);
 
-		FlxG.sound.music.loadEmbedded(PathUtil.ofSong(songId), false, false);
-		FlxG.sound.music.onComplete = () -> {
-			GeneralUtil.fadeIntoState(new MainMenuState(), Constants.TRANSITION_DURATION, false);
-		};
 		FlxG.sound.music.play();
+		FlxG.sound.music.volume = 0;
+		countdownActive = true;
+		countdownText = new FlxText(0, 0, FlxG.width, "");
+		countdownText.size = 128;
+		countdownText.alignment = "center";
+		countdownText.screenCenter();
+		countdownText.cameras = [uiCamera];
+		add(countdownText);
+		startCountdown();
 	}
 
 	override public function update(elapsed:Float) {
@@ -356,7 +375,6 @@ class PlayState extends MusicBeatState {
 			GeneralUtil.fadeIntoState(new MainMenuState(), Constants.TRANSITION_DURATION, false);
 		}
 
-		// Get the current music time in seconds
 		musicTime = FlxG.sound.music.time / 1000;
 		musicTimeMS = FlxG.sound.music.time;
 
@@ -377,8 +395,7 @@ class PlayState extends MusicBeatState {
 			var noteTime:Float = AssetUtil.getDynamicField(note, 'time', 0);
 			var noteLane:Int = AssetUtil.getDynamicField(note, 'lane', 0);
 
-			// Spawn the note when its time matches the music time minus the spawn buffer
-			if (noteTime <= musicTime + spawnBuffer) {
+			if (noteTime <= musicTime - spawnBuffer) {
 				var noteLaneX:Float = noteLanesGroup.members[noteLane].x;
 				var newNote:Note = new Note(noteLaneX, noteLane, ClientPrefs.options.scrollType, noteSpeed, note, currentNoteIdx);
 				newNote.cameras = [gameplayCamera];
@@ -394,7 +411,7 @@ class PlayState extends MusicBeatState {
 			var eventTime:Float = AssetUtil.getDynamicField(event, 'time', musicTime);
 			var eventValues:Array<Dynamic> = AssetUtil.getDynamicField(event, 'values', []);
 
-			if (eventTime <= musicTime) {
+			if (eventTime <= (music.time / 1000)) {
 				triggerEvent(eventName, eventValues);
 				songEvents.shift();
 			}
@@ -416,7 +433,7 @@ class PlayState extends MusicBeatState {
 		}
 
 		if (Controls.getBinds().UI_BACK_JUST_PRESSED) {
-			openSubState(new PauseSubState());
+			pauseGame();
 		}
 
 		var idx:Int = 0;
@@ -460,6 +477,16 @@ class PlayState extends MusicBeatState {
 		bgCamera.zoom = FlxMath.lerp(Constants.DEFAULT_CAM_ZOOM, bgCamera.zoom, Math.exp(-elapsed * 3.125 * Constants.CAMERA_ZOOM_DECAY));
 		gameplayCamera.zoom = FlxMath.lerp(Constants.DEFAULT_CAM_ZOOM, gameplayCamera.zoom, Math.exp(-elapsed * 3.125 * Constants.CAMERA_ZOOM_DECAY));
 		uiCamera.zoom = FlxMath.lerp(Constants.DEFAULT_CAM_ZOOM, uiCamera.zoom, Math.exp(-elapsed * 3.125 * Constants.CAMERA_ZOOM_DECAY));
+	}
+
+	override function onFocusLost() {
+		super.onFocusLost();
+		pauseGame();
+	}
+
+	override function closeSubState() {
+		super.closeSubState();
+		music.resume();
 	}
 
 	function triggerEvent(name:String, values:Array<Dynamic>):Void {
@@ -533,6 +560,38 @@ class PlayState extends MusicBeatState {
 				});
 
 		}
+	}
+
+	function startCountdown():Void {
+		var count = 3;
+		countdownText.text = Std.string(count);
+		countdownText.screenCenter();
+		var beatDuration = 60 / songBPM; // Only use songBPM
+		var timer = new FlxTimer();
+		timer.start(beatDuration, (t:FlxTimer) -> {
+			count--;
+			if (count > 0) {
+				FlxG.sound.play(PathUtil.ofSound('snap'), false);
+				countdownText.text = Std.string(count);
+				countdownText.screenCenter();
+				timer.reset(beatDuration);
+			} else if (count == 0) {
+				FlxG.sound.play(PathUtil.ofSound('snap'), false);
+				countdownText.text = "Go!";
+				countdownText.screenCenter();
+				timer.reset(beatDuration);
+			} else {
+				music.play();
+				remove(countdownText);
+				countdownActive = false;
+				timer.cancel();
+			}
+		}, 5);
+	}
+
+	function pauseGame():Void {
+		music.pause();
+		openSubState(new PauseSubState());
 	}
 
 	public function beatHit():Void {

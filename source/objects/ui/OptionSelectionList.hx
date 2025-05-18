@@ -113,7 +113,7 @@ class OptionSelectionList extends FlxTypedGroup<Option> {
                 }
             }
 
-            if (Controls.getBinds().UI_SELECT_JUST_PRESSED || FlxG.mouse.justPressed && members[_currentSelected].isFocused) {
+            if (Controls.getBinds().UI_SELECT_JUST_PRESSED || FlxG.keys.justPressed.SPACE && members[_currentSelected].isFocused) {
                 this.members[this._currentSelected].onSelected();
             }
         }
@@ -146,7 +146,6 @@ class OptionSelectionList extends FlxTypedGroup<Option> {
                 // The properties to tween
                 var options:Dynamic = {
                     x: newX
-                    // y: o.y + ((dir < 0) ? spacing * -1 : spacing) 
                 };
                 // Tween the current object in the looped option
                 FlxTween.tween(o, options, this.scrollDuration, { type: FlxTweenType.PERSIST, ease: FlxEase.quadOut });

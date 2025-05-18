@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='utf-8'?>
+<TextureAtlas imagePath="options-bg.png">
+    <SubTexture name="options-bg_0" x="0" y="0" width="1280" height="560" frameX="0" frameY="0" frameWidth="1280" frameHeight="560" />
+    <SubTexture name="options-bg_1" x="0" y="560" width="1280" height="560" frameX="0" frameY="0" frameWidth="1280" frameHeight="560" />
+    <SubTexture name="options-bg_2" x="1280" y="0" width="1280" height="560" frameX="0" frameY="0" frameWidth="1280" frameHeight="560" />
+    <SubTexture name="options-bg_3" x="1280" y="560" width="1280" height="560" frameX="0" frameY="0" frameWidth="1280" frameHeight="560" />
+    <SubTexture name="options-bg_4" x="0" y="1120" width="1280" height="560" frameX="0" frameY="0" frameWidth="1280" frameHeight="560" />
+    <SubTexture name="options-bg_5" x="1280" y="1120" width="1280" height="560" frameX="0" frameY="0" frameWidth="1280" frameHeight="560" />
+    <SubTexture name="options-bg_6" x="0" y="1680" width="1280" height="560" frameX="0" frameY="0" frameWidth="1280" frameHeight="560" />
+    <SubTexture name="options-bg_7" x="1280" y="1680" width="1280" height="560" frameX="0" frameY="0" frameWidth="1280" frameHeight="560" />
+    <SubTexture name="options-bg_8" x="2560" y="0" width="1280" height="560" frameX="0" frameY="0" frameWidth="1280" frameHeight="560" />
+    <SubTexture name="options-bg_9" x="2560" y="560" width="1280" height="560" frameX="0" frameY="0" frameWidth="1280" frameHeight="560" />
+    <SubTexture name="options-bg_10" x="2560" y="1120" width="1280" height="560" frameX="0" frameY="0" frameWidth="1280" frameHeight="560" />
+    <SubTexture name="options-bg_11" x="2560" y="1680" width="1280" height="560" frameX="0" frameY="0" frameWidth="1280" frameHeight="560" />
+    <SubTexture name="options-bg_12" x="0" y="2240" width="1280" height="560" frameX="0" frameY="0" frameWidth="1280" frameHeight="560" />
+    <SubTexture name="options-bg_13" x="1280" y="2240" width="1280" height="560" frameX="0" frameY="0" frameWidth="1280" frameHeight="560" />
+    <SubTexture name="options-bg_14" x="2560" y="2240" width="1280" height="560" frameX="0" frameY="0" frameWidth="1280" frameHeight="560" />
+    <SubTexture name="options-bg_15" x="0" y="2800" width="1280" height="560" frameX="0" frameY="0" frameWidth="1280" frameHeight="560" />
+    <SubTexture name="options-bg_16" x="1280" y="2800" width="1280" height="560" frameX="0" frameY="0" frameWidth="1280" frameHeight="560" />
+    <SubTexture name="options-bg_17" x="2560" y="2800" width="1280" height="560" frameX="0" frameY="0" frameWidth="1280" frameHeight="560" />
+    <SubTexture name="options-bg_18" x="3840" y="0" width="1280" height="560" frameX="0" frameY="0" frameWidth="1280" frameHeight="560" />
+    <SubTexture name="options-bg_19" x="3840" y="560" width="1280" height="560" frameX="0" frameY="0" frameWidth="1280" frameHeight="560" />
+    <SubTexture name="options-bg_20" x="3840" y="1120" width="1280" height="560" frameX="0" frameY="0" frameWidth="1280" frameHeight="560" />
+    <SubTexture name="options-bg_21" x="3840" y="1680" width="1280" height="560" frameX="0" frameY="0" frameWidth="1280" frameHeight="560" />
+    <SubTexture name="options-bg_22" x="3840" y="2240" width="1280" height="560" frameX="0" frameY="0" frameWidth="1280" frameHeight="560" />
+    <SubTexture name="options-bg_23" x="3840" y="2800" width="1280" height="560" frameX="0" frameY="0" frameWidth="1280" frameHeight="560" />
+</TextureAtlas>
