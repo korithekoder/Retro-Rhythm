@@ -167,7 +167,9 @@ class Note extends FlxSprite {
             }
         }
 
-        PlayState.noteHitTypePopup.text = Constants.HIT_WINDOW_DISPLAY_TEXTS[type];
+        PlayState.noteHitTypePopup.text = (CacheUtil.currentSongId != 'dead-built-like-an-apple') 
+            ? Constants.HIT_WINDOW_DISPLAY_TEXTS[type]
+            : Constants.HIT_WINDOW_DISPLAY_TEXTS_DBLAA[type];
         PlayState.noteHitTypePopup.color = color;
         PlayState.noteHitTypePopup.setBorderStyle(FlxTextBorderStyle.SHADOW, shadowColor, 5);
         PlayState.noteHitTypePopup.updateHitbox();

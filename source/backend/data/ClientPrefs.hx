@@ -53,6 +53,16 @@ enum ScrollType {
      * Should the game show a splash effect when a note is hit?
      */
     public var showHitSplash:Bool = true;
+
+    /**
+     * Should the game have a small cooldown when the game is unpaused?
+     */
+    public var unpauseCountdown:Bool = false;
+
+    /**
+     * How long the unpause countdown is in seconds.
+     */
+    public var unpauseCountdownTime:Int = 3;
 }
 
 /**

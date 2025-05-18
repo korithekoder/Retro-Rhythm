@@ -1,5 +1,6 @@
 package states.menus;
 
+import flixel.input.keyboard.FlxKey;
 import flixel.math.FlxMath;
 import flixel.FlxCamera;
 import objects.states.MusicBeatState;
@@ -53,6 +54,15 @@ class SongSelectionState extends MusicBeatState {
     var isPaused:Bool = false;
     var canScroll:Bool = true;
 
+    var dblaaSequence:Array<FlxKey> = [
+        A,
+        P,
+        P,
+        L,
+        E
+    ];
+    var dblaaSequenceIndex:Int = 0;
+
     override function create() {
         super.create();
 
@@ -80,7 +90,7 @@ class SongSelectionState extends MusicBeatState {
 
         var toAdd:Array<SongBoardObject> = [];
         for (asset in Assets.list()) {
-            if (asset.indexOf('assets/charts/') == 0) {
+            if (asset.indexOf('assets/charts/') == 0 && asset != PathUtil.ofChart('dead-built-like-an-apple')) {
                 var song:Dynamic = AssetUtil.getJsonData(asset);
                 var songId:String = asset.split('/')[asset.split('/').length - 1];
                 var songEvents:Array<Dynamic> = AssetUtil.getDynamicField(song, 'events', []);
@@ -145,7 +155,7 @@ class SongSelectionState extends MusicBeatState {
         add(specialEventsWarningSymbol);
 
         specialEventsWarningText = new FlxText();
-        specialEventsWarningText.text = 'This song has special events\nwhich might effect gameplay!';
+        specialEventsWarningText.text = 'This song has special events\nwhich might affect gameplay!';
         specialEventsWarningText.size = 25;
         specialEventsWarningText.color = FlxColor.ORANGE;
         specialEventsWarningText.setBorderStyle(OUTLINE_FAST, FlxColor.BLACK, 3);
@@ -284,19 +294,30 @@ class SongSelectionState extends MusicBeatState {
     override function update(elapsed:Float) {
         super.update(elapsed);
 
+        // notice how this is the first thing checked?
+        // ( ͡° ͜ʖ ͡°)  <- copilot recommended me that LMFAO
+        if (FlxG.keys.anyJustPressed([dblaaSequence[dblaaSequenceIndex]])) {
+            dblaaSequenceIndex++;
+            FlxG.sound.play(PathUtil.ofSound('hitsound'), false);
+            if (dblaaSequenceIndex >= dblaaSequence.length) {
+                FlxG.sound.play(PathUtil.ofSound('secret'), false);
+                GeneralUtil.fadeIntoState(new PlayState('dead-built-like-an-apple'), Constants.TRANSITION_DURATION, false);
+            }
+        }
+
         musicTime = FlxG.sound.music.time / 1000;
 
         if (Controls.getBinds().UI_UP_JUST_PRESSED) {
-            scrollSongs(-1);
+            scrollSongs(-1, 'blip');
         } else if (Controls.getBinds().UI_DOWN_JUST_PRESSED) {
-            scrollSongs(1);
+            scrollSongs(1, 'blip');
         }
 
         if (FlxG.mouse.wheel != 0) {
             if (FlxG.mouse.wheel > 0) {
-                scrollSongs(-1);
+                scrollSongs(-1, 'blip');
             } else {
-                scrollSongs(1);
+                scrollSongs(1, 'blip');
             }
         }
 
@@ -310,7 +331,7 @@ class SongSelectionState extends MusicBeatState {
         bgCamera.zoom = FlxMath.lerp(Constants.DEFAULT_CAM_ZOOM, bgCamera.zoom, Math.exp(-elapsed * 3.125 * Constants.CAMERA_ZOOM_DECAY));
     }
 
-    function scrollSongs(dir:Int, playSound:Bool = true):Void {
+    function scrollSongs(dir:Int, soundToPlay:String = 'hitsound', playSound:Bool = true):Void {
         isPaused = false;
 
         if (!canScroll) return;
@@ -346,7 +367,7 @@ class SongSelectionState extends MusicBeatState {
                     },
                     onComplete: (_) -> {
                         setSongData(banner);
-                        FlxG.sound.music.loadEmbedded(PathUtil.ofSong(banner.id), false, false);
+                        FlxG.sound.music.loadEmbedded(PathUtil.ofSong(banner.id), true, false);
                         FlxG.sound.music.play();
                         setSongTimeInfo();
                         timeBar.setRange(0.0, FlxG.sound.music.length);
@@ -376,7 +397,7 @@ class SongSelectionState extends MusicBeatState {
         });
 
         if (playSound) {
-            FlxG.sound.play(PathUtil.ofSound('hitsound'));
+            FlxG.sound.play(PathUtil.ofSound(soundToPlay));
         }
     }
 

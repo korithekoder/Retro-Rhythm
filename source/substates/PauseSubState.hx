@@ -1,5 +1,7 @@
 package substates;
 
+import flixel.sound.FlxSound;
+import backend.data.ClientPrefs;
 import flixel.FlxCamera;
 import backend.Controls;
 import backend.data.Constants;
@@ -10,7 +12,6 @@ import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.FlxSubState;
 import flixel.group.FlxGroup.FlxTypedGroup;
-import flixel.text.FlxText.FlxTextBorderStyle;
 import flixel.text.FlxText;
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
@@ -29,6 +30,8 @@ class PauseSubState extends FlxSubState {
     var buttonClickFunctions:Map<String, Void->Void>;
 	var buttonWasClicked:Bool = false;
 
+    var music:FlxSound;
+
     var pausedText:FlxText;
 
     override function create() {
@@ -40,8 +43,6 @@ class PauseSubState extends FlxSubState {
 		FlxG.cameras.add(pauseCam, false); // Add as overlay, not the main camera
 
 		cameras = [pauseCam];
-
-        FlxG.sound.music.pause();
 
         bg = new FlxSprite();
         bg.makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
@@ -58,16 +59,21 @@ class PauseSubState extends FlxSubState {
         pausedText.setPosition(80, 90);
         add(pausedText);
 
+        music = new FlxSound();
+        music.loadEmbedded(PathUtil.ofMusic(Constants.PAUSE_MENU_MUSIC[FlxG.random.int(0, Constants.PAUSE_MENU_MUSIC.length - 1)]), true, true);
+        music.volume = 0;
+        FlxG.sound.list.add(music);
+        music.play();
+
         FlxTween.tween(bg, { alpha: 0.6 }, 0.5, { ease: FlxEase.quartIn });
         FlxTween.tween(pausedText, { alpha: 1 }, 0.5, {ease: FlxEase.quartIn });
+        FlxTween.tween(music, { volume: 0.15 }, 3, { ease: FlxEase.quartInOut });
 
         buttonClickFunctions = [
             'Resume' => () -> {
 				if (buttonWasClicked)
 					return;
-				buttonWasClicked = true;
-                FlxG.sound.music.resume();
-                close();
+                resumeGame();
             },
             'Enable Bot Play' => () -> {
 				if (buttonWasClicked)
@@ -104,6 +110,7 @@ class PauseSubState extends FlxSubState {
             b.y = newY;
             b.onClick = buttonClickFunctions.get(btn);
             b.onHover = () -> {
+                if (buttonWasClicked) return;
                 FlxG.sound.play(PathUtil.ofSound('blip'), false);
                 FlxTween.cancelTweensOf(b);
                 FlxTween.tween(b, { x: 175 }, 0.3, {
@@ -111,6 +118,7 @@ class PauseSubState extends FlxSubState {
                 });
             };
             b.onHoverLost = () -> {
+                if (buttonWasClicked) return;
                 FlxTween.cancelTweensOf(b);
                 FlxTween.tween(b, { x: 80 }, 0.3, {
                     ease: FlxEase.quadOut
@@ -135,8 +143,57 @@ class PauseSubState extends FlxSubState {
         super.update(elapsed);
 
         if (Controls.getBinds().UI_BACK_JUST_PRESSED) {
+            resumeGame();
+        }
+    }
+
+    function resumeGame():Void {
+        buttonWasClicked = true;
+        if (!ClientPrefs.options.unpauseCountdown) {
             FlxG.sound.music.resume();
+            PlayState.music.resume();
+            music.destroy();
             close();
+        } else {
+            var countdownDelay:Float = 0.3;
+            for (btn in buttonsGroup.members) {
+                FlxTween.cancelTweensOf(btn);
+                FlxTween.cancelTweensOf(pausedText);
+                FlxTween.tween(pausedText, { alpha: 0 }, countdownDelay, {
+                    ease: FlxEase.quadInOut
+                });
+                FlxTween.tween(btn, { alpha: 0 }, countdownDelay, {
+                    ease: FlxEase.quadInOut
+                });
+            }
+
+            new FlxTimer().start(countdownDelay, (_) -> {
+                var countdownTime:Int = ClientPrefs.options.unpauseCountdownTime;
+                var countdownText:FlxText = new FlxText(0, 0, FlxG.width, '$countdownTime');
+                countdownText.size = 100;
+                countdownText.color = FlxColor.WHITE;
+                countdownText.alignment = 'center';
+                countdownText.setBorderStyle(FlxTextBorderStyle.OUTLINE, FlxColor.BLACK, 3);
+                countdownText.updateHitbox();
+                countdownText.screenCenter();
+                countdownText.visible = false;
+                add(countdownText);
+
+                new FlxTimer().start(0.5, (_) -> {
+                    countdownText.visible = true;
+                    countdownTime--;
+                    countdownText.text = '${countdownTime + 1}';
+                    countdownText.updateHitbox();
+                    countdownText.screenCenter();
+                    FlxG.sound.play(PathUtil.ofSound('blip'), false);
+                }, ClientPrefs.options.unpauseCountdownTime);
+                new FlxTimer().start((ClientPrefs.options.unpauseCountdownTime / 2) + 0.5, (_) -> {
+                    FlxG.sound.music.resume();
+                    PlayState.music.resume();
+                    music.destroy();
+                    close();
+                });
+            });
         }
     }
 }

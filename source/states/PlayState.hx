@@ -1,5 +1,6 @@
 package states;
 
+import states.menus.GameOverMenuState;
 import backend.Controls;
 import backend.data.ClientPrefs;
 import backend.data.Constants;
@@ -45,6 +46,8 @@ class PlayState extends MusicBeatState {
 		3 => null
 	];
 
+	public static var music:FlxSound;
+
 	var songId:String;
 	var songData:Dynamic;
 	var songNotes:Array<Dynamic>;
@@ -88,7 +91,13 @@ class PlayState extends MusicBeatState {
 	var countdownActive:Bool = true;
 	var countdownText:FlxText;
 
-	var music:FlxSound;
+	var timeLeft:Float;
+	var minutesLeft:Float;
+	var secondsLeft:Float;
+
+	var canPause:Bool = false;
+
+	var lowwwTaperFade:FlxSprite;
 
 	public function new(songId:String) {
 		super();
@@ -138,12 +147,12 @@ class PlayState extends MusicBeatState {
 		GeneralUtil.resetHitsArray();
 
 		music = new FlxSound();
-		FlxG.sound.list.add(music);
-		FlxG.sound.music.loadEmbedded(PathUtil.ofSong(songId), false, false);
 		music.loadEmbedded(PathUtil.ofSong(songId), false, false);
-		FlxG.sound.music.onComplete = () -> {
+		music.onComplete = () -> {
 			GeneralUtil.fadeIntoState(new MainMenuState(), Constants.TRANSITION_DURATION, false);
 		};
+		FlxG.sound.list.add(music);
+		FlxG.sound.music.loadEmbedded(PathUtil.ofSong(songId), false, false);
 
 		firstNotes = [
 			0 => null,
@@ -356,23 +365,32 @@ class PlayState extends MusicBeatState {
 		timeText.cameras = [uiCamera];
 		add(timeText);
 
-		FlxG.sound.music.play();
-		FlxG.sound.music.volume = 0;
-		countdownActive = true;
 		countdownText = new FlxText(0, 0, FlxG.width, "");
 		countdownText.size = 128;
 		countdownText.alignment = "center";
+		countdownText.setBorderStyle(OUTLINE_FAST, FlxColor.BLACK, 4);
 		countdownText.screenCenter();
 		countdownText.cameras = [uiCamera];
 		add(countdownText);
-		startCountdown();
+
+		lowwwTaperFade = new FlxSprite();
+		lowwwTaperFade.makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
+		lowwwTaperFade.updateHitbox();
+		lowwwTaperFade.setPosition(0, 0);
+		lowwwTaperFade.cameras = [uiCamera];
+		add(lowwwTaperFade);
+
+		FlxTween.tween(lowwwTaperFade, { alpha: 0 }, 0.8, { ease: FlxEase.quadInOut, onComplete: (_) -> startCountdown() });
 	}
 
 	override public function update(elapsed:Float) {
 		super.update(elapsed);
 
 		if (CacheUtil.health <= 0) {
-			GeneralUtil.fadeIntoState(new MainMenuState(), Constants.TRANSITION_DURATION, false);
+			lowwwTaperFade.alpha = 1;
+			FlxG.sound.music.stop();
+			music.stop();
+			GeneralUtil.fadeIntoState(new GameOverMenuState(), Constants.TRANSITION_DURATION, false);
 		}
 
 		musicTime = FlxG.sound.music.time / 1000;
@@ -432,13 +450,13 @@ class PlayState extends MusicBeatState {
 			GeneralUtil.fadeIntoState(new PlayState(songId), Constants.TRANSITION_DURATION, false);
 		}
 
-		if (Controls.getBinds().UI_BACK_JUST_PRESSED) {
+		if (Controls.getBinds().UI_BACK_JUST_PRESSED && canPause) {
 			pauseGame();
 		}
 
 		var idx:Int = 0;
 		for (ht in noteHitsGroup.members) {
-			ht.text = '${Constants.HIT_WINDOW_DISPLAY_TEXTS[idx]}: ${CacheUtil.hits[idx]}';
+			ht.text = '${songId != 'dead-built-like-an-apple' ? Constants.HIT_WINDOW_DISPLAY_TEXTS[idx] : Constants.HIT_WINDOW_DISPLAY_TEXTS_DBLAA[idx]}: ${CacheUtil.hits[idx]}';
 			ht.size = Std.int(FlxMath.lerp(Constants.HIT_WINDOW_TEXT_SIZE, ht.size, Math.exp(-elapsed * 3.125 * Constants.HIT_TYPE_TEXT_DECAY)));
 			idx++;
 		}
@@ -459,15 +477,15 @@ class PlayState extends MusicBeatState {
 		noteHitTypePopup.x = ((minX + maxX) / 2) - (noteHitTypePopup.width / 2) + 50;
 		comboPopup.x = ((minX + maxX) / 2) - (comboPopup.width / 2) + 50;
 
-		var timeLeft:Float = FlxG.sound.music.length - FlxG.sound.music.time;
-		var minutesLeft:Int = Math.floor(timeLeft / 60000);
-		var secondsLeft:Int = Math.floor((timeLeft % 60000) / 1000);
+		timeLeft = music.length - music.time;
+		minutesLeft = Math.floor(timeLeft / 60000);
+		secondsLeft = Math.floor((timeLeft % 60000) / 1000);
 		timeText.text = '${Std.string(minutesLeft)} : ${secondsLeft < 10 ? '0' : ''}${Std.string(secondsLeft)}';
 		timeText.updateHitbox();
 		timeText.x = (timeBar.x + (timeBar.width / 2)) - (timeText.width / 2) + 4;
 		timeText.y = (timeBar.y + (timeBar.height / 2)) - (timeText.height / 2);
 
-		healthText.text = (!CacheUtil.botModeEnabled) ? 'HP: ${Math.ceil(CacheUtil.health)}%' : 'BOT PLAY ENABLED';
+		healthText.text = (!CacheUtil.botModeEnabled) ? '${songId != 'dead-built-like-an-apple' ? 'HP' : 'aura'}: ${Math.ceil(CacheUtil.health)}%' : (songId != 'dead-built-like-an-apple') ? 'BOT PLAY ENABLED' : 'y u cheatin\'?';
 		healthText.color = (CacheUtil.health > 30) ? FlxColor.WHITE : FlxColor.RED;
 		healthText.updateHitbox();
 		healthText.x = healthBar.x + ((healthBar.width / 2) - (healthText.width / 2));
@@ -482,11 +500,6 @@ class PlayState extends MusicBeatState {
 	override function onFocusLost() {
 		super.onFocusLost();
 		pauseGame();
-	}
-
-	override function closeSubState() {
-		super.closeSubState();
-		music.resume();
 	}
 
 	function triggerEvent(name:String, values:Array<Dynamic>):Void {
@@ -564,11 +577,16 @@ class PlayState extends MusicBeatState {
 
 	function startCountdown():Void {
 		var count = 3;
-		countdownText.text = Std.string(count);
-		countdownText.screenCenter();
 		var beatDuration = 60 / songBPM; // Only use songBPM
 		var timer = new FlxTimer();
-		timer.start(beatDuration, (t:FlxTimer) -> {
+		countdownText.text = Std.string(count);
+		countdownText.screenCenter();
+
+		FlxG.sound.music.play();
+		FlxG.sound.music.volume = 0;
+		countdownActive = true;
+
+		timer.start(beatDuration - songSpeed, (t:FlxTimer) -> {
 			count--;
 			if (count > 0) {
 				FlxG.sound.play(PathUtil.ofSound('snap'), false);
@@ -581,6 +599,7 @@ class PlayState extends MusicBeatState {
 				countdownText.screenCenter();
 				timer.reset(beatDuration);
 			} else {
+				canPause = true;
 				music.play();
 				remove(countdownText);
 				countdownActive = false;
@@ -591,6 +610,7 @@ class PlayState extends MusicBeatState {
 
 	function pauseGame():Void {
 		music.pause();
+		FlxG.sound.music.pause();
 		openSubState(new PauseSubState());
 	}
 

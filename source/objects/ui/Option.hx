@@ -82,6 +82,13 @@ abstract class Option extends FlxTypedGroup<FlxSprite> {
     //            METHODS
     // -----------------------------
 
+    override function update(elapsed:Float) {
+        super.update(elapsed);
+        if (isFocused) {
+            return;
+        }
+    }
+
     /**
      * A callback function to be executed when the option is selected.
      */

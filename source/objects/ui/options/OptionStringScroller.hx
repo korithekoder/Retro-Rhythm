@@ -48,7 +48,7 @@ class OptionStringScroller extends Option {
     }
 
     private function _changeOption(increment:Int) {
-        FlxG.sound.play(PathUtil.ofSound('select'));
+        FlxG.sound.play(PathUtil.ofSound('blip'));
 
         _currentIndex += increment;
         if (_currentIndex == -1) {

@@ -82,6 +82,12 @@ final class Constants {
 
 	public static final DEFAULT_MENU_MUSIC_NAME:String = 'Bit Destroyer';
 
+    public static final PAUSE_MENU_MUSIC:Array<String> = [
+        'Unforgiving Cold',
+        'Winter Cold',
+        'Last Time'
+    ];
+
     public static final CAMERA_ZOOM_DECAY:Float = 1;
 
 	public static final HIT_TYPE_TEXT_DECAY = 0.7;
@@ -123,6 +129,8 @@ final class Constants {
 	public static final MISS_INDEX:Int = 6;
 
     public static final HIT_WINDOW_DISPLAY_TEXTS:Array<String> = ['Marvelous!!!', 'Sick!!', 'Great!', 'Good', 'Okay', 'Yikes', 'Miss'];
+
+    public static final HIT_WINDOW_DISPLAY_TEXTS_DBLAA:Array<String> = ['SKIBIDI!!', 'sigma', 'alpha', 'aight\'', 'bruh', 'rlly?', 'ur ass'];
 
 	public static final HIT_WINDOW_TEXT_SIZE:Int = 64;
 
