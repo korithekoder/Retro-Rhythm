@@ -29,7 +29,7 @@ final class Constants {
         'v_mute'     => FlxKey.F12,
 
         // Misc.
-        'fullscreen' => FlxKey.F11
+        'm_fullscreen' => FlxKey.F11
     ];
 
     public static final OPTIONS_SAVE_BIND_ID:String = 'options';
@@ -78,15 +78,23 @@ final class Constants {
         bannercolor: [0, 0, 0]
 	};
 
-	public static final TRANSITION_DURATION:Float = 0.2;
-
-	public static final DEFAULT_MENU_MUSIC_NAME:String = 'Bit Destroyer';
+    public static final NON_SPECIAL_EVENTS:Array<String> = [
+        'Add Camera Zoom',
+        'Set Beats Before Hit',
+        'Change Beats Before Hit',
+        'Set Cam Zoom Intensity',
+        'Change Cam Zoom Intensity'
+    ];
 
     public static final PAUSE_MENU_MUSIC:Array<String> = [
         'Unforgiving Cold',
         'Winter Cold',
         'Last Time'
     ];
+
+	public static final TRANSITION_DURATION:Float = 0.2;
+
+	public static final DEFAULT_MENU_MUSIC_NAME:String = 'Bit Destroyer';
 
     public static final CAMERA_ZOOM_DECAY:Float = 1;
 
@@ -161,14 +169,6 @@ final class Constants {
 	public static final SONG_BANNER_SCROLL_DELAY:Float = 0.15;
 
 	public static final OPTION_DISPLAY_TEXT_SIZE:Int = 64;
-
-    public static final NON_SPECIAL_EVENTS:Array<String> = [
-        'Add Camera Zoom',
-        'Set Beats Before Hit',
-        'Change Beats Before Hit',
-        'Set Cam Zoom Intensity',
-        'Change Cam Zoom Intensity'
-    ];
 
     private function new() {}
 }

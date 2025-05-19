@@ -229,4 +229,13 @@ final class ClientPrefs {
         optionsData.close();
         controlsData.close();
     }
+
+    /**
+     * Reset the user's controls to the default ones.
+     */
+    public static function resetControls():Void {
+        for (key in Constants.DEFAULT_CONTROLS_KEYBOARD.keys()) {
+            _controlsKeyboard.set(key, Constants.DEFAULT_CONTROLS_KEYBOARD.get(key));
+        }
+    }
 }

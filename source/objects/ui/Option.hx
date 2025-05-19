@@ -84,7 +84,7 @@ abstract class Option extends FlxTypedGroup<FlxSprite> {
 
     override function update(elapsed:Float) {
         super.update(elapsed);
-        if (isFocused) {
+        if (!isFocused) {
             return;
         }
     }

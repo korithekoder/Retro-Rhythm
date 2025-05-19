@@ -34,6 +34,8 @@ class PauseSubState extends FlxSubState {
 
     var pausedText:FlxText;
 
+    var isUnpausing:Bool = false;
+
     override function create() {
         super.create();
 
@@ -154,7 +156,8 @@ class PauseSubState extends FlxSubState {
             PlayState.music.resume();
             music.destroy();
             close();
-        } else {
+        } else if (!isUnpausing) {
+            isUnpausing = true;
             var countdownDelay:Float = 0.3;
             for (btn in buttonsGroup.members) {
                 FlxTween.cancelTweensOf(btn);

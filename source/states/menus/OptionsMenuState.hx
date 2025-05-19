@@ -1,5 +1,6 @@
 package states.menus;
 
+import substates.options.ControlsOptionsSubState;
 import flixel.graphics.frames.FlxAtlasFrames;
 import substates.options.MiscOptionsSubState;
 import flixel.util.FlxTimer;
@@ -25,7 +26,7 @@ class OptionsMenuState extends FlxTransitionableState {
 
     var buttonsGroup:FlxTypedGroup<ClickableText>;
     var buttonClickFunctions:Map<String, Void -> Void>;
-    var buttonIds:Array<String> = ['Gameplay', 'Misc.'];
+    var buttonIds:Array<String> = ['Gameplay', 'Controls', 'Misc.'];
 
     var canClick:Bool = true;
     var canBackOut:Bool = true;  // Whether the back button can be used to exit the menu
@@ -60,6 +61,9 @@ class OptionsMenuState extends FlxTransitionableState {
             'Gameplay' => () -> {
                 openOptionsMenu(new GameplayOptionsSubState());
             },
+            'Controls' => () -> {
+                openOptionsMenu(new ControlsOptionsSubState());
+            },
             'Misc.' => () -> {
                 openOptionsMenu(new MiscOptionsSubState());
             }
@@ -68,12 +72,12 @@ class OptionsMenuState extends FlxTransitionableState {
         buttonsGroup = new FlxTypedGroup<ClickableText>();
         add(buttonsGroup);
 
-        var newY:Float = 150;
+        var newY:Float = 120;
         var newTweenTime:Float = 0.25;
         for (btn in buttonIds) {
             var b = new ClickableText();
             b.text = btn;
-            b.size = 115;
+            b.size = 90;
             b.setBorderStyle(OUTLINE_FAST, FlxColor.BLACK, 3);
             b.updateHitbox();
             b.x = -b.width;

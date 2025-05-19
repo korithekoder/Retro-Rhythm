@@ -576,19 +576,21 @@ class PlayState extends MusicBeatState {
 	}
 
 	function startCountdown():Void {
-		var count = 3;
+		var count = 4;
 		var beatDuration = 60 / songBPM; // Only use songBPM
 		var timer = new FlxTimer();
 		countdownText.text = Std.string(count);
 		countdownText.screenCenter();
+		countdownText.visible = false;
 
 		FlxG.sound.music.play();
 		FlxG.sound.music.volume = 0;
 		countdownActive = true;
 
-		timer.start(beatDuration - songSpeed, (t:FlxTimer) -> {
+		timer.start((beatDuration - Constants.TRANSITION_DURATION) * songSpeed, (t:FlxTimer) -> {
 			count--;
 			if (count > 0) {
+				countdownText.visible = true;
 				FlxG.sound.play(PathUtil.ofSound('snap'), false);
 				countdownText.text = Std.string(count);
 				countdownText.screenCenter();

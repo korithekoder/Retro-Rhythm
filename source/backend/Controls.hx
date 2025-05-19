@@ -84,7 +84,7 @@ final class Controls {
 
     // Misc. (just pressed)
     public var FULLSCREEN_JUST_PRESSED(get, never):Bool;
-    private inline function get_FULLSCREEN_JUST_PRESSED():Bool return justPressed('fullscreen');
+    private inline function get_FULLSCREEN_JUST_PRESSED():Bool return justPressed('m_fullscreen');
 
     private function new() {}
 
@@ -103,7 +103,7 @@ final class Controls {
      * @return     If the said bind is being held down.
      */
     public static inline function pressed(bind:String):Bool {
-        return FlxG.keys.anyPressed([ClientPrefs.controlsKeyboard.get(bind)]);
+        return (ClientPrefs.controlsKeyboard.get(bind) != NONE) ? FlxG.keys.anyPressed([ClientPrefs.controlsKeyboard.get(bind)]) : false;
     }
 
     /**
@@ -112,7 +112,7 @@ final class Controls {
      * @return     If the said bind was just pressed.
      */
     public static inline function justPressed(bind:String):Bool {
-        return FlxG.keys.anyJustPressed([ClientPrefs.controlsKeyboard.get(bind)]);
+        return (ClientPrefs.controlsKeyboard.get(bind) != NONE) ?  FlxG.keys.anyJustPressed([ClientPrefs.controlsKeyboard.get(bind)]) : false;
     }
 
     /**
@@ -121,7 +121,7 @@ final class Controls {
      * @return     If the said bind just released.
      */
     public static inline function justReleased(bind:String):Bool {
-        return FlxG.keys.anyJustReleased([ClientPrefs.controlsKeyboard.get(bind)]);
+        return (ClientPrefs.controlsKeyboard.get(bind) != NONE) ? FlxG.keys.anyJustReleased([ClientPrefs.controlsKeyboard.get(bind)]) : false;
     }
 
     /**

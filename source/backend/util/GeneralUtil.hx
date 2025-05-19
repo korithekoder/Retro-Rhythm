@@ -1,5 +1,6 @@
 package backend.util;
 
+import flixel.input.keyboard.FlxKey;
 import backend.data.Constants;
 import flixel.FlxG;
 import flixel.FlxSprite;
@@ -151,6 +152,26 @@ final class GeneralUtil {
         for (i in 0...CacheUtil.hits.length) {
             CacheUtil.hits[i] = 0;
         }
+    }
+
+    public static function getLastKeyPressed():FlxKey {
+        var lastKey:FlxKey = FlxKey.NONE;
+        for (key in 9...303) {
+            if (FlxG.keys.anyJustPressed([key])) {
+                lastKey = key;
+                break; // Stop after finding the first one this frame
+            }
+        }
+        return lastKey;
+    }
+
+    public static function getBindPrefix(bind:String):String {
+        for (i in 0...bind.length) {
+            if (bind.charAt(i) == '_') {
+                return bind.substr(0, i);
+            }
+        }
+        return '';
     }
 
     /**
