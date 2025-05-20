@@ -1,5 +1,7 @@
 ## IF YOU JUST WANT TO PLAY THE GAME, THEN PLEASE USE THE ITCH.IO LINK BELOW
 
+https://korithekoder.itch.io/retro-rhythm
+
 # What even is this game?
 
 This is a game I had to make for a project in high school.
