@@ -307,9 +307,9 @@ class SongSelectionState extends MusicBeatState {
 
         musicTime = FlxG.sound.music.time / 1000;
 
-        if (Controls.getBinds().UI_UP_JUST_PRESSED || Controls.getBinds().UI_LEFT_JUST_PRESSED) {
+        if (Controls.getBinds().UI_UP_JUST_PRESSED) {
             scrollSongs(-1, 'blip');
-        } else if (Controls.getBinds().UI_DOWN_JUST_PRESSED || Controls.getBinds().UI_RIGHT_JUST_PRESSED) {
+        } else if (Controls.getBinds().UI_DOWN_JUST_PRESSED) {
             scrollSongs(1, 'blip');
         }
 

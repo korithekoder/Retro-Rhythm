@@ -19,7 +19,7 @@ class NoteLane extends FlxSprite {
         this.makeGraphic(Constants.NOTE_LANE_WIDTH, FlxG.height, color);
         this.updateHitbox();
         this.setPosition(x, 0);
-        this.alpha = 0.5;
+        this.alpha = ClientPrefs.options.noteLaneBaseAlpha;
         this._lane = lane;
     }
 
@@ -30,6 +30,6 @@ class NoteLane extends FlxSprite {
             this.alpha = 0.9;
         }
 
-        this.alpha = FlxMath.lerp(Constants.DEFAULT_NOTE_LANE_ALPHA, this.alpha, Math.exp(-elapsed * 3.125 * Constants.NOTE_LANE_ALPHA_DECAY));
+        this.alpha = FlxMath.lerp(ClientPrefs.options.noteLaneBaseAlpha, this.alpha, Math.exp(-elapsed * 3.125 * Constants.NOTE_LANE_ALPHA_DECAY));
     }
 }

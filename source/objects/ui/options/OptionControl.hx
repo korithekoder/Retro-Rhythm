@@ -1,5 +1,6 @@
 package objects.ui.options;
 
+import backend.util.SaveUtil;
 import flixel.input.keyboard.FlxKey;
 import backend.util.PathUtil;
 import flixel.FlxG;
@@ -74,6 +75,7 @@ class OptionControl extends Option {
                     FlxG.sound.muteKeys = [ClientPrefs.controlsKeyboard.get('v_mute')];
 
                     FlxG.keys.reset();  // Reset all key presses to prevent weird shit from happening
+                    SaveUtil.saveUserControls();
 
                     FlxG.sound.play(PathUtil.ofSound('select'));
                 } else {

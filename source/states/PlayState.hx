@@ -39,6 +39,8 @@ class PlayState extends MusicBeatState {
 	public static var noteHitTypePopup:FlxText;
 	public static var comboPopup:FlxText;
 
+	public static var hasStartedMusic:Bool = false;
+
 	public static var firstNotes:Map<Int, Note> = [
 		0 => null,
 		1 => null,
@@ -97,6 +99,8 @@ class PlayState extends MusicBeatState {
 
 	var canPause:Bool = false;
 
+	var plundWater:FlxSprite;  // Exclusive to The Plunderer
+
 	var lowwwTaperFade:FlxSprite;
 
 	public function new(songId:String) {
@@ -146,6 +150,8 @@ class PlayState extends MusicBeatState {
 		CacheUtil.currentSongId = songId;
 		GeneralUtil.resetHitsArray();
 
+		FlxG.camera.alpha = 0;
+
 		music = new FlxSound();
 		music.loadEmbedded(PathUtil.ofSong(songId), false, false);
 		music.onComplete = () -> {
@@ -153,6 +159,8 @@ class PlayState extends MusicBeatState {
 		};
 		FlxG.sound.list.add(music);
 		FlxG.sound.music.loadEmbedded(PathUtil.ofSong(songId), false, false);
+
+		FlxG.mouse.visible = !ClientPrefs.options.hideMouseDuringGameplay;
 
 		firstNotes = [
 			0 => null,
@@ -203,6 +211,17 @@ class PlayState extends MusicBeatState {
 		strumline.y = (ClientPrefs.options.scrollType == DOWNSCROLL) ? FlxG.height - Constants.STRUMLINE_Y_OFFSET : Constants.STRUMLINE_Y_OFFSET;
 		strumline.cameras = [gameplayCamera];
 		add(strumline);
+
+		// Exclusive to the plunderer
+		plundWater = new FlxSprite();
+		plundWater.loadGraphic(PathUtil.ofImage('plund-water'));
+		plundWater.setGraphicSize(FlxG.width, 110);
+		plundWater.updateHitbox();
+		plundWater.alpha = 0;
+		plundWater.x = 0;
+		plundWater.y = FlxG.height + plundWater.height;
+		plundWater.cameras = [uiCamera];
+		add(plundWater);
 		
 		noteHitsBg = new FlxSprite();
 		noteHitsBg.makeGraphic(400, FlxG.height, FlxColor.BLACK);
@@ -402,18 +421,12 @@ class PlayState extends MusicBeatState {
 			}
 		}
 
-		// Calculate the spawn buffer based on note speed, strumline position, and note height
-		var strumlineY:Float = (ClientPrefs.options.scrollType == DOWNSCROLL) ? FlxG.height - Constants.STRUMLINE_Y_OFFSET : Constants.STRUMLINE_Y_OFFSET;
-		var spawnY:Float = (ClientPrefs.options.scrollType == DOWNSCROLL) ? -Constants.NOTE_SIZE_HEIGHT : FlxG.height;
-		var travelDistance:Float = Math.abs(strumlineY - spawnY);
-		var spawnBuffer:Float = (travelDistance + (Constants.NOTE_SIZE_HEIGHT / 2)) / noteSpeed;
-
 		// Spawn notes in sync with the music
 		for (note in songNotes) {
 			var noteTime:Float = AssetUtil.getDynamicField(note, 'time', 0);
 			var noteLane:Int = AssetUtil.getDynamicField(note, 'lane', 0);
 
-			if (noteTime <= musicTime - spawnBuffer) {
+			if (noteTime <= musicTime - getSpawnBuffer()) {
 				var noteLaneX:Float = noteLanesGroup.members[noteLane].x;
 				var newNote:Note = new Note(noteLaneX, noteLane, ClientPrefs.options.scrollType, noteSpeed, note, currentNoteIdx);
 				newNote.cameras = [gameplayCamera];
@@ -572,6 +585,29 @@ class PlayState extends MusicBeatState {
 					ease: FlxEase.quadInOut
 				});
 
+			case '[Plund.] Start Water Effect':
+				FlxTween.tween(plundWater, { y: FlxG.height - plundWater.height, alpha: 1 }, 2, { ease: FlxEase.quadInOut, onComplete: (_) -> {
+					FlxTween.tween(plundWater, { y: plundWater.y + 12 }, 4, { type: FlxTweenType.PINGPONG, ease: FlxEase.quadInOut });
+				}});
+				// See-saw camera angle effect
+				var angleAmount:Float = 10; // maximum angle in degrees
+				var angleDuration:Float = 6; // duration for each swing
+
+				function swingCamera(direction:Int):Void {
+					FlxTween.tween(gameplayCamera, { angle: angleAmount * direction }, angleDuration, {
+						ease: FlxEase.quadInOut,
+						onComplete: (_) -> {
+							FlxTween.tween(gameplayCamera, { angle: angleAmount * -direction }, angleDuration, {
+								ease: FlxEase.quadInOut,
+								onComplete: (_) -> swingCamera(-direction)
+							});
+						}
+					});
+				}
+
+				// Start the see-saw effect
+				swingCamera(1);
+
 		}
 	}
 
@@ -587,7 +623,7 @@ class PlayState extends MusicBeatState {
 		FlxG.sound.music.volume = 0;
 		countdownActive = true;
 
-		timer.start((beatDuration - Constants.TRANSITION_DURATION) * songSpeed, (t:FlxTimer) -> {
+		timer.start((beatDuration - Constants.TRANSITION_DURATION), (t:FlxTimer) -> {
 			count--;
 			if (count > 0) {
 				countdownText.visible = true;
@@ -601,13 +637,25 @@ class PlayState extends MusicBeatState {
 				countdownText.screenCenter();
 				timer.reset(beatDuration);
 			} else {
-				canPause = true;
-				music.play();
 				remove(countdownText);
 				countdownActive = false;
 				timer.cancel();
 			}
 		}, 5);
+
+		new FlxTimer().start((beatDuration - Constants.TRANSITION_DURATION) - getSpawnBuffer() * 4 * songSpeed, (_) -> {
+			canPause = true;
+			music.play();
+		});
+	}
+
+	function getSpawnBuffer():Float {
+		// Calculate the spawn buffer based on note speed, strumline position, and note height
+		var strumlineY:Float = (ClientPrefs.options.scrollType == DOWNSCROLL) ? FlxG.height - Constants.STRUMLINE_Y_OFFSET : Constants.STRUMLINE_Y_OFFSET;
+		var spawnY:Float = (ClientPrefs.options.scrollType == DOWNSCROLL) ? -Constants.NOTE_SIZE_HEIGHT : FlxG.height;
+		var travelDistance:Float = Math.abs(strumlineY - spawnY);
+		var spawnBuffer:Float = (travelDistance + (Constants.NOTE_SIZE_HEIGHT / 2)) / noteSpeed;
+		return spawnBuffer;
 	}
 
 	function pauseGame():Void {

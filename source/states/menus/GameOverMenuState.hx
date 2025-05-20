@@ -30,6 +30,8 @@ class GameOverMenuState extends FlxTransitionableState {
     override function create() {
         super.create();
 
+        FlxG.mouse.visible = true;
+
         gameOverSound = new FlxSound();
         gameOverSound.loadEmbedded(PathUtil.ofSound('game-over'), false, false);
         gameOverSound.onComplete = () -> {

@@ -1,5 +1,7 @@
 package backend.util;
 
+import openfl.net.URLRequest;
+import openfl.Lib;
 import flixel.input.keyboard.FlxKey;
 import backend.data.Constants;
 import flixel.FlxG;
@@ -17,6 +19,9 @@ import backend.api.DiscordClient;
 #end
 #if html5
 import js.Browser;
+#end
+#if Sys
+import sys.io.Process;
 #end
 
 /**
@@ -172,6 +177,10 @@ final class GeneralUtil {
             }
         }
         return '';
+    }
+
+    public static function openURL(url:String):Void {
+        Lib.getURL(new URLRequest(url));
     }
 
     /**

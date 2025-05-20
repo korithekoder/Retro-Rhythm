@@ -1,6 +1,5 @@
 package objects.gameplay;
 
-import backend.data.ClientPrefs.ScrollType;
 import backend.data.ClientPrefs;
 import backend.data.Constants;
 import backend.util.CacheUtil;
@@ -76,6 +75,13 @@ class Note extends FlxSprite {
             } else {
                 if (this.y <= -this.height) {
                     missAndDestroy();
+                }
+            }
+
+            if (strumlineDistance <= Constants.HIT_WINDOW_OFFSETS[Constants.YIKES_INDEX]) {
+                if (!PlayState.hasStartedMusic) {
+                    PlayState.hasStartedMusic = true;
+                    PlayState.music.play();
                 }
             }
 

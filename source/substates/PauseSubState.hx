@@ -39,6 +39,8 @@ class PauseSubState extends FlxSubState {
     override function create() {
         super.create();
 
+        FlxG.mouse.visible = true;
+
 		var pauseCam = new FlxCamera();
 		pauseCam.bgColor = FlxColor.TRANSPARENT;
 		pauseCam.zoom = 1; // No zoom
@@ -155,6 +157,7 @@ class PauseSubState extends FlxSubState {
             FlxG.sound.music.resume();
             PlayState.music.resume();
             music.destroy();
+            FlxG.mouse.visible = ClientPrefs.options.hideMouseDuringGameplay;
             close();
         } else if (!isUnpausing) {
             isUnpausing = true;
@@ -194,6 +197,7 @@ class PauseSubState extends FlxSubState {
                     FlxG.sound.music.resume();
                     PlayState.music.resume();
                     music.destroy();
+                    FlxG.mouse.visible = ClientPrefs.options.hideMouseDuringGameplay;
                     close();
                 });
             });

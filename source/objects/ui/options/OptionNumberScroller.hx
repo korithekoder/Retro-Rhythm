@@ -1,5 +1,6 @@
 package objects.ui.options;
 
+import backend.util.SaveUtil;
 import backend.Controls;
 import backend.data.ClientPrefs;
 import backend.data.Constants;
@@ -18,8 +19,9 @@ class OptionNumberScroller extends Option {
     private var _decimalPlaces:Int;
     private var _isPercent:Bool;
     private var _isValidNumOption:Bool;
+    private var _callback:Void->Void;
     
-    public function new(x:Float, y:Float,  name:String, option:String, minValue:Float, maxValue:Float, increment:Float, decimalPlaces:Int, isPercent:Bool, description:String = '[No Description Set]') {
+    public function new(x:Float, y:Float,  name:String, option:String, minValue:Float, maxValue:Float, increment:Float, decimalPlaces:Int, isPercent:Bool, callback:Void->Void = null, description:String = '[No Description Set]') {
         var clientPreference:Any = ClientPrefs.getClientPreference(option);
         var value:Float;
         if (clientPreference != null) {
@@ -30,6 +32,8 @@ class OptionNumberScroller extends Option {
         this._isValidNumOption = Std.isOfType(clientPreference, Float);
 
         super(name, option, description);
+
+        this._callback = callback;
 
         this._increment = increment;
         this._decimalPlaces = decimalPlaces;
@@ -83,6 +87,10 @@ class OptionNumberScroller extends Option {
                 ? FlxMath.roundDecimal(value * 100, 0)
                 : FlxMath.roundDecimal(value, _decimalPlaces);
             _displayText.text = '${name}: < ${displayValue}${(_isPercent) ? '%' : ''} >';
+
+            SaveUtil.saveUserOptions();
+
+            if (_callback != null) _callback();
         } else {
             FlxG.camera.shake(0.03, 0.1);
             FlxG.sound.play(PathUtil.ofSound('nope'));

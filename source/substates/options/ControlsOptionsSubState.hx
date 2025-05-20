@@ -1,5 +1,6 @@
 package substates.options;
 
+import flixel.util.FlxColor;
 import backend.data.ClientPrefs;
 import backend.util.PathUtil;
 import objects.ui.options.OptionAction;
@@ -25,7 +26,7 @@ class ControlsOptionsSubState extends OptionsDisplaySubState {
         _selectionList.add(new OptionControl(20, newY + 2200, 'Decrease Volume', 'v_down'));
         _selectionList.add(new OptionControl(20, newY + 2400, 'Mute Volume', 'v_mute'));
         _selectionList.add(new OptionControl(20, newY + 2600, 'Fullscreen', 'm_fullscreen'));
-        _selectionList.add(new OptionAction(20, newY + 2800, 'Reset Controls', () -> {
+        _selectionList.add(new OptionAction(20, newY + 2800, 'Reset Controls', FlxColor.RED, () -> {
             FlxG.sound.play(PathUtil.ofSound('select'));
             ClientPrefs.resetControls();
         }));

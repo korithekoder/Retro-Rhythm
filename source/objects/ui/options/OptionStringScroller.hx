@@ -1,5 +1,6 @@
 package objects.ui.options;
 
+import backend.util.SaveUtil;
 import backend.Controls;
 import backend.util.PathUtil;
 import flixel.FlxG;
@@ -60,5 +61,7 @@ class OptionStringScroller extends Option {
         _currentSelectedOption = _options[_currentIndex];
         ClientPrefs.setClientPreference(_option, _currentSelectedOption);
         _displayText.text = '${name}: < ${_currentSelectedOption} >';
+
+        SaveUtil.saveUserOptions();
     }
 }

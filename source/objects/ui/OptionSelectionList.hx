@@ -98,9 +98,9 @@ class OptionSelectionList extends FlxTypedGroup<Option> {
         if (this.members.length == 0) return;
 
         if (this.scrollType != SelectionScrollType.NONE) {
-            if (Controls.getBinds().UI_UP_JUST_PRESSED || Controls.getBinds().UI_LEFT_JUST_PRESSED) {
+            if (Controls.getBinds().UI_UP_JUST_PRESSED) {
                 _scrollThroughOptions(1);
-            } else if (Controls.getBinds().UI_DOWN_JUST_PRESSED || Controls.getBinds().UI_RIGHT_JUST_PRESSED) {
+            } else if (Controls.getBinds().UI_DOWN_JUST_PRESSED) {
                 _scrollThroughOptions(-1);
             }
 

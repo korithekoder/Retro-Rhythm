@@ -27,6 +27,10 @@
 	<!--Mobile-specific-->
 	<window if="mobile" orientation="landscape" fullscreen="true" width="0" height="0" />
 
+	<!-- ____________________________ Game Settings ___________________________ -->
+
+	<define name="CREDITS_BUTTON_ALLOWED" />
+
 	<!-- _____________________________ Path Settings ____________________________ -->
 
 	<!-- Build Directories -->
@@ -39,8 +43,8 @@
 
 	<assets path="assets/charts" include="*.json" />
 
-	<assets path="assets/music" include="*.mp3" if="web" />
-	<assets path="assets/music" include="*.ogg" if="desktop" />
+	<assets path="assets/shared/music" include="*.mp3" if="web" />
+	<assets path="assets/shared/music" include="*.ogg" if="desktop" />
 	<assets path="assets/songs" include="*.mp3" if="web" />
 	<assets path="assets/songs" include="*.ogg" if="desktop" />
 	<assets path="assets/shared/sounds" include="*.mp3" if="web" />
@@ -93,5 +97,5 @@
 
 	<!-- _________________________________ Custom _______________________________ -->
 
-	<!--Place custom nodes like icons here-->
+	<icon path="assets/icons/icon.png" />
 </project>

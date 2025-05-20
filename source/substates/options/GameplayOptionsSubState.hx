@@ -16,5 +16,6 @@ class GameplayOptionsSubState extends OptionsDisplaySubState {
         _selectionList.add(new OptionNumberScroller(20, newY + 400, 'Note Hit Sfx Volume', 'hitSoundVolume', 0.1, 1.0, 0.1, 0, true));
         _selectionList.add(new OptionCheckBox(20, newY + 600, 'Note Lane Flash', 'noteLaneFlash'));
         _selectionList.add(new OptionCheckBox(20, newY + 800, 'Note Hit Splashes', 'showHitSplash'));
+        _selectionList.add(new OptionCheckBox(20, newY + 1000, 'Hide Mouse During Gameplay', 'hideMouseDuringGameplay'));
     }
 }

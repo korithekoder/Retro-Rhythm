@@ -30,10 +30,12 @@ class MainMenuState extends MusicBeatState {
     var buttonBgSprite:FlxSprite;
 
     var buttons:FlxTypedGroup<ClickableText>;
-    var buttonIds:Array<String> = ['Play', 'Options', 'Exit'];
+    var buttonIds:Array<String> = ['Play', 'Options', #if CREDITS_BUTTON_ALLOWED 'Credits', #end 'Exit'];
     
     override function create() {
         super.create();
+
+        FlxG.mouse.visible = true;
 
         GeneralUtil.playMenuMusic();
         FlxG.sound.music.resume();
@@ -82,6 +84,13 @@ class MainMenuState extends MusicBeatState {
                 FlxG.sound.music.stop();
                 GeneralUtil.fadeIntoState(new OptionsMenuState(), Constants.TRANSITION_DURATION, false);
             },
+            #if CREDITS_BUTTON_ALLOWED
+            'Credits' => () -> {
+                FlxG.sound.play(PathUtil.ofSound('select'));
+                FlxG.sound.music.stop();
+                GeneralUtil.fadeIntoState(new CreditsMenuState(), Constants.TRANSITION_DURATION, false);
+            },
+            #end
             'Exit' => () -> {
                 GeneralUtil.closeGame();
             }
@@ -135,11 +144,6 @@ class MainMenuState extends MusicBeatState {
         super.update(elapsed);
 
         bgCamera.zoom = FlxMath.lerp(Constants.DEFAULT_CAM_ZOOM, bgCamera.zoom, Math.exp(-elapsed * 3.125 * Constants.CAMERA_ZOOM_DECAY));
-
-        if (FlxG.keys.justPressed.SPACE) {
-            CacheUtil.hasSeenIntro = true;
-            FlxG.sound.music.time = 31000;
-        }
 
         if (Controls.getBinds().UI_BACK_JUST_PRESSED) {
             GeneralUtil.closeGame();

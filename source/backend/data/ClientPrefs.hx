@@ -63,6 +63,21 @@ enum ScrollType {
      * How long the unpause countdown is in seconds.
      */
     public var unpauseCountdownTime:Int = 3;
+
+    /**
+     * Should the mouse be hidden while the user is playing the game?
+     */
+    public var hideMouseDuringGameplay:Bool = true;
+
+    /**
+     * How transparent the note lanes are when they are not pressed.
+     */
+    public var noteLaneBaseAlpha:Float = 0.5;
+
+    /**
+     * Pretty self explanatory, hm?
+     */
+    public var fps:Int = 60;
 }
 
 /**

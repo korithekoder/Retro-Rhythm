@@ -9,14 +9,14 @@ class OptionAction extends Option {
     private var _callback:Void->Void;
     private var _displayText:FlxText;
 
-    public function new(x:Float, y:Float, name:String, callback:Void->Void, description:String = '[No Description Set]') {
+    public function new(x:Float, y:Float, name:String, color:FlxColor, callback:Void->Void, description:String = '[No Description Set]') {
         super(name, '', description);
 
         this._callback = callback;
 
         this._displayText = new FlxText();
         this._displayText.text = name;
-        this._displayText.color = FlxColor.WHITE;
+        this._displayText.color = color;
         this._displayText.setBorderStyle(FlxTextBorderStyle.OUTLINE, FlxColor.BLACK, 3);
         this._displayText.size = Constants.OPTION_DISPLAY_TEXT_SIZE;
         this._displayText.updateHitbox();

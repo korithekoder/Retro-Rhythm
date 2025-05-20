@@ -56,7 +56,7 @@ final class PathUtil {
      * @return     The path of the soundtrack.
      */
     public static inline function ofMusic(name:String):String {
-        return 'assets/music/$name${#if web '.mp3' #else '.ogg' #end}';
+        return 'assets/shared/music/$name${#if web '.mp3' #else '.ogg' #end}';
     }
 
     /**

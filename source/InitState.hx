@@ -1,3 +1,5 @@
+package;
+
 import backend.data.Constants;
 import flixel.util.FlxColor;
 import flixel.addons.transition.TransitionData;

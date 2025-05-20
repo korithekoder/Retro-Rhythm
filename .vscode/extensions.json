@@ -1,6 +1,9 @@
 {
 	"recommendations": [
 		"openfl.lime-vscode-extension",
-		"redhat.vscode-xml"
+		"redhat.vscode-xml",
+		"vshaxe.haxe-extension-pack",
+		"vshaxe.haxe-checkstyle",
+		"streetsidesoftware.code-spell-checker"
 	]
 }

@@ -1,5 +1,6 @@
 package objects.ui.options;
 
+import backend.util.SaveUtil;
 import backend.data.Constants;
 import backend.data.ClientPrefs;
 import flixel.FlxG;
@@ -21,6 +22,8 @@ class OptionCheckBox extends Option {
 
     private var _isValidBoolPref:Bool;
 
+    private var _callback:Void->Void;
+
     /**
      * Constructor.
      * 
@@ -31,12 +34,14 @@ class OptionCheckBox extends Option {
      *                    (This is the preference ID that is made in `SaveVariables` in `backend.data.ClientPrefs`.)
      * @param description A description of the checkbox (default is '[No Description Set]').
      */
-    public function new(x:Float, y:Float, name:String, option:String, canBeClickedOn:Bool = false, description:String = '[No Description Set]') {
+    public function new(x:Float, y:Float, name:String, option:String, canBeClickedOn:Bool = false, callback:Void->Void = null, description:String = '[No Description Set]') {
 
         this._isValidBoolPref = Type.typeof(Reflect.field(ClientPrefs.options, 'noteHitSound')) == TBool;
         this._isChecked = (this._isValidBoolPref) ? ClientPrefs.getClientPreference(option) : false;
 
         super(name, option, description);
+
+        this._callback = callback;
 
         this._checkmarkSymbol = new FlxSprite();
         this._checkmarkSymbol.loadGraphic(PathUtil.ofImage((this._isValidBoolPref) ? (_isChecked) ? 'checked' : 'unchecked' : 'unchecked'));
@@ -67,6 +72,9 @@ class OptionCheckBox extends Option {
             this._checkmarkSymbol.loadGraphic(PathUtil.ofImage((_isChecked) ? 'checked' : 'unchecked'));
             this._checkmarkSymbol.updateHitbox();
             FlxG.sound.play(PathUtil.ofSound((_isChecked) ? 'select' : 'unselect'), 0.8);
+            if (_callback != null) _callback();
+            this._isChecked = ClientPrefs.getClientPreference(option);
+            SaveUtil.saveUserOptions();
         } else {
             FlxG.camera.shake(0.03, 0.1);
             FlxG.sound.play(PathUtil.ofSound('nope'));
